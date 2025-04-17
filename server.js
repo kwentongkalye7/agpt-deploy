@@ -1,3 +1,5 @@
+console.log('EMAIL_USER =', process.env.EMAIL_USER);
+console.log('EMAIL_PASS length =', process.env.EMAIL_PASS?.length);
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
@@ -11,6 +13,12 @@ const app = express();
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 const Post = mongoose.model('Post', new mongoose.Schema({ title: String, excerpt: String, slug: String }));
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+  .then(() => console.log('✅ Mongoose connected to', process.env.MONGO_URI))
+  .catch(err => console.error('❌ Mongoose connection error:', err));
 const Contact = mongoose.model('Contact', new mongoose.Schema({ name: String, email: String, message: String, createdAt: { type: Date, default: Date.now } }));
 
 app.use(bodyParser.json());
