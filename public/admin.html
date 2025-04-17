@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin - Manage Insights</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="font-sans antialiased bg-gray-100">
+  <div class="min-h-screen flex items-center justify-center">
+    <!-- Login Section -->
+    <div id="loginSection" class="max-w-md w-full bg-white p-6 rounded shadow-md">
+      <h2 class="text-2xl font-bold mb-4">Admin Login</h2>
+      <form id="loginForm" class="space-y-4">
+        <div>
+          <label for="username" class="block mb-1 text-gray-700">Username</label>
+          <input id="username" name="username" type="text" class="w-full border px-3 py-2 rounded focus:ring focus:ring-blue-200" required />
+        </div>
+        <div>
+          <label for="password" class="block mb-1 text-gray-700">Password</label>
+          <input id="password" name="password" type="password" class="w-full border px-3 py-2 rounded focus:ring focus:ring-blue-200" required />
+        </div>
+        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Login</button>
+      </form>
+    </div>
+
+    <!-- Post Management Section -->
+    <div id="postSection" class="hidden w-full max-w-3xl mx-4">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-2xl font-bold">Manage Insights</h2>
+        <button id="logoutBtn" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Logout</button>
+      </div>
+      <div id="postList" class="space-y-4">
+        <!-- Posts will be rendered here -->
+      </div>
+      <hr class="my-6" />
+      <h3 class="text-xl font-semibold mb-2">Create / Edit Insight</h3>
+      <form id="postForm" class="space-y-4 bg-white p-6 rounded shadow-md">
+        <input type="hidden" name="_id" />
+        <div>
+          <label for="title" class="block mb-1 text-gray-700">Title</label>
+          <input id="title" name="title" type="text" class="w-full border px-3 py-2 rounded focus:ring focus:ring-blue-200" required />
+        </div>
+        <div>
+          <label for="excerpt" class="block mb-1 text-gray-700">Excerpt</label>
+          <textarea id="excerpt" name="excerpt" rows="3" class="w-full border px-3 py-2 rounded focus:ring focus:ring-blue-200" required></textarea>
+        </div>
+        <div>
+          <label for="slug" class="block mb-1 text-gray-700">Slug</label>
+          <input id="slug" name="slug" type="text" class="w-full border px-3 py-2 rounded focus:ring focus:ring-blue-200" required />
+        </div>
+        <div class="flex space-x-2">
+          <button type="submit" class="bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700">Save</button>
+          <button type="button" id="cancelEditBtn" class="bg-gray-400 text-white py-2 px-4 rounded hover:bg-gray-500">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Login handler
+    document.getElementById('loginForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const { username, password } = e.target;
+      const res = await fetch('/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: username.value, password: password.value })
+      });
+      if (res.ok) {
+        document.getElementById('loginSection').classList.add('hidden');
+        document.getElementById('postSection').classList.remove('hidden');
+        loadAndRender();
+      } else alert('Login failed');
+    });
+
+    // Logout
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await fetch('/admin/logout', { method: 'POST' });
+      window.location.reload();
+    });
+
+    // Fetch & render posts
+    async function fetchPosts() {
+      const res = await fetch('/api/posts');
+      return res.json();
+    }
+    function renderPosts(posts) {
+      window.allPosts = posts;
+      const list = document.getElementById('postList');
+      list.innerHTML = '';
+      posts.forEach(p => {
+        const el = document.createElement('div');
+        el.className = 'bg-white p-4 rounded shadow-md flex justify-between items-center';
+        el.innerHTML = `
+          <div>
+            <h4 class="font-semibold mb-1">${p.title}</h4>
+            <small class="text-gray-500">/${p.slug}</small>
+          </div>
+          <div class="space-x-2">
+            <button data-id="${p._id}" class="editBtn bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">Edit</button>
+            <button data-id="${p._id}" class="deleteBtn bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Delete</button>
+          </div>
+        `;
+        list.appendChild(el);
+      });
+      document.querySelectorAll('.editBtn').forEach(btn => btn.onclick = () => startEdit(btn.dataset.id));
+      document.querySelectorAll('.deleteBtn').forEach(btn => btn.onclick = () => deletePost(btn.dataset.id));
+    }
+    async function loadAndRender() {
+      const posts = await fetchPosts();
+      renderPosts(posts);
+    }
+
+    // Delete post
+    async function deletePost(id) {
+      if (!confirm('Delete this insight?')) return;
+      const res = await fetch(`/api/posts/${id}`, { method: 'DELETE' });
+      if (res.ok) loadAndRender();
+      else alert('Delete failed');
+    }
+
+    // Start editing
+    function startEdit(id) {
+      const post = window.allPosts.find(p => p._id === id);
+      const form = document.getElementById('postForm');
+      form._id.value = post._id;
+      form.title.value = post.title;
+      form.excerpt.value = post.excerpt;
+      form.slug.value = post.slug;
+    }
+
+    // Form submit for create/update
+    document.getElementById('postForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const form = e.target; const id = form._id.value;
+      const payload = { title: form.title.value, excerpt: form.excerpt.value, slug: form.slug.value };
+      const method = id ? 'PUT' : 'POST';
+      const url = id ? `/api/posts/${id}` : '/api/posts';
+      const res = await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+      if (res.ok) {
+        form.reset(); form._id.value = '';
+        loadAndRender();
+      } else alert('Save failed');
+    });
+
+    // Cancel edit
+    document.getElementById('cancelEditBtn').addEventListener('click', () => {
+      document.getElementById('postForm').reset();
+    });
+  </script>
+</body>
+</html>
