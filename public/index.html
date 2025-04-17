@@ -1,0 +1,139 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AGPT Accounting and Business Consultancy - Empowering businesses through reliable financial solutions">
+  <title>AGPT Accounting & Consultancy</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="assets/css/custom.css">
+</head>
+<body class="font-sans antialiased text-gray-800 scroll-smooth">
+  <!-- Navigation -->
+  <header class="bg-white shadow sticky top-0 z-50">
+    <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+      <a href="#home"><img src="assets/new-AGPT-logo.svg" alt="AGPT Logo" class="w-12"></a>
+      <nav>
+        <ul class="flex space-x-6">
+          <li><a href="#home" class="hover:text-blue-600">Home</a></li>
+          <li><a href="#about" class="hover:text-blue-600">About</a></li>
+          <li><a href="#services" class="hover:text-blue-600">Services</a></li>
+          <li><a href="#resources" class="hover:text-blue-600">Resources</a></li>
+          <li><a href="#contact" class="hover:text-blue-600">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Home / Hero Section -->
+  <section id="home" class="bg-gray-100 py-20">
+    <div class="container mx-auto px-4 text-center">
+      <h1 class="text-4xl font-bold mb-4">AGPT Accounting & Business Consultancy</h1>
+      <p class="text-xl mb-8">Empowering Businesses Through Reliable Accounting, Tax, and Consultancy Solutions</p>
+      <a href="#contact" class="inline-block bg-blue-600 text-white px-8 py-3 rounded hover:bg-blue-700 transition">Get Started</a>
+    </div>
+  </section>
+
+  <!-- About Us -->
+  <section id="about" class="py-16">
+    <div class="container mx-auto px-4">
+      <h2 class="text-3xl font-bold text-center mb-8">About Us</h2>
+      <p class="text-lg max-w-3xl mx-auto">Founded on July 1, 2015, AGPT Accounting and Business Consultancy is dedicated to making professional financial services accessible to Bicolano SMEs. Our partners bring decades of expertise from commerce, government, and academe, united by a vision to drive growth through integrity, excellence, and innovation.</p>
+    </div>
+  </section>
+
+  <!-- Services -->
+  <section id="services" class="py-16 bg-gray-50">
+    <div class="container mx-auto px-4">
+      <h2 class="text-3xl font-bold text-center mb-12">Our Services</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="bg-white p-6 rounded shadow hover:shadow-lg transition">
+          <h3 class="text-xl font-semibold mb-2">Tax Compliance & Advisory</h3>
+          <p>Personalized tax planning, BIR filings, and compliance guidance to optimize your efficiency and reduce liabilities.</p>
+        </div>
+        <div class="bg-white p-6 rounded shadow hover:shadow-lg transition">
+          <h3 class="text-xl font-semibold mb-2">Accounting & Bookkeeping</h3>
+          <p>Accurate, timely bookkeeping and financial reporting to ensure your records are always up-to-date and compliant.</p>
+        </div>
+        <div class="bg-white p-6 rounded shadow hover:shadow-lg transition">
+          <h3 class="text-xl font-semibold mb-2">Business Consultancy</h3>
+          <p>Strategic advice on business registration, operations improvement, and growth planning tailored to your needs.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Resources / Blog -->
+  <section id="resources" class="py-16">
+    <div class="container mx-auto px-4">
+      <h2 class="text-3xl font-bold text-center mb-12">Latest Insights</h2>
+      <div id="posts" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Blog posts will be loaded here via JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section id="contact" class="py-16 bg-gray-50">
+    <div class="container mx-auto px-4 max-w-xl">
+      <h2 class="text-3xl font-bold text-center mb-8">Contact Us</h2>
+      <form id="contactForm" class="bg-white p-6 rounded shadow">
+        <div class="mb-4">
+          <label for="name" class="block text-gray-700 mb-2">Name</label>
+          <input type="text" id="name" name="name" required class="w-full border px-3 py-2 rounded focus:ring focus:ring-blue-200" />
+        </div>
+        <div class="mb-4">
+          <label for="email" class="block text-gray-700 mb-2">Email</label>
+          <input type="email" id="email" name="email" required class="w-full border px-3 py-2 rounded focus:ring focus:ring-blue-200" />
+        </div>
+        <div class="mb-4">
+          <label for="message" class="block text-gray-700 mb-2">Message</label>
+          <textarea id="message" name="message" rows="5" required class="w-full border px-3 py-2 rounded focus:ring focus:ring-blue-200"></textarea>
+        </div>
+        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">Send Message</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t py-6">
+    <div class="container mx-auto px-4 text-center">
+      <p class="text-sm">&copy; 2025 AGPT Accounting and Business Consultancy. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Fetch blog posts from backend
+    fetch('/api/posts')
+      .then(res => res.json())
+      .then(posts => {
+        const container = document.getElementById('posts');
+        posts.forEach(p => {
+          const card = document.createElement('div');
+          card.className = 'bg-white p-6 rounded shadow hover:shadow-lg transition';
+          card.innerHTML = `<h3 class="text-xl font-semibold mb-2">${p.title}</h3><p class="mb-4">${p.excerpt}</p><a href="/posts/${p.slug}" class="text-blue-600 hover:underline">Read More</a>`;
+          container.appendChild(card);
+        });
+      });
+
+    // Handle contact form submission
+    document.getElementById('contactForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const data = {
+        name: e.target.name.value,
+        email: e.target.email.value,
+        message: e.target.message.value
+      };
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (res.ok) alert('Message sent!');
+      else alert('Error sending message');
+      e.target.reset();
+    });
+  </script>
+</body>
+</html>
