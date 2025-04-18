@@ -1,12 +1,13 @@
 require('dotenv').config();
 console.log('EMAIL_USER =', process.env.EMAIL_USER);
 console.log('EMAIL_PASS length =', process.env.EMAIL_PASS?.length);
+
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
-const mongoose = require('mongoose');
 const nodemailer = require('nodemailer');
 const session = require('express-session');
+const { Pool } = require('pg');
 
 const app = express();
 
@@ -25,20 +26,9 @@ app.use(
 app.use(express.static(path.join(__dirname, 'public')));
 
 //-----------------------------------------------------------------
-// MongoDB Connection & Models
+// PostgreSQL Connection
 //-----------------------------------------------------------------
-mongoose
-  .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('✅ Connected to MongoDB'))
-  .catch(err => console.error('❌ MongoDB connection error:', err));
-
-const postSchema = new mongoose.Schema({
-  title: String,
-  excerpt: String,
-  slug: String,
-  createdAt: { type: Date, default: Date.now }
-});
-const Post = mongoose.model('Post', postSchema);
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 //-----------------------------------------------------------------
 // Auth Helper
@@ -70,14 +60,17 @@ app.post('/admin/logout', (req, res) => {
 });
 
 //-----------------------------------------------------------------
-// Posts API (protected)
+// Posts API (PostgreSQL)
 //-----------------------------------------------------------------
 // Create
 app.post('/api/posts', requireAdmin, async (req, res) => {
+  const { title, excerpt, slug } = req.body;
   try {
-    const post = new Post(req.body);
-    await post.save();
-    res.status(201).json(post);
+    const result = await pool.query(
+      `INSERT INTO posts (title, excerpt, slug) VALUES ($1, $2, $3) RETURNING *`,
+      [title, excerpt, slug]
+    );
+    res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error('Error creating post:', err);
     res.sendStatus(500);
@@ -87,8 +80,10 @@ app.post('/api/posts', requireAdmin, async (req, res) => {
 // Read (public)
 app.get('/api/posts', async (req, res) => {
   try {
-    const posts = await Post.find().sort({ createdAt: -1 }).limit(6);
-    res.json(posts);
+    const result = await pool.query(
+      `SELECT id, title, excerpt, slug, created_at FROM posts ORDER BY created_at DESC LIMIT 6`
+    );
+    res.json(result.rows);
   } catch (err) {
     console.error('Error fetching posts:', err);
     res.sendStatus(500);
@@ -97,13 +92,14 @@ app.get('/api/posts', async (req, res) => {
 
 // Update
 app.put('/api/posts/:id', requireAdmin, async (req, res) => {
+  const { id } = req.params;
+  const { title, excerpt, slug } = req.body;
   try {
-    const updated = await Post.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
+    const result = await pool.query(
+      `UPDATE posts SET title=$1, excerpt=$2, slug=$3 WHERE id=$4 RETURNING *`,
+      [title, excerpt, slug, id]
     );
-    res.json(updated);
+    res.json(result.rows[0]);
   } catch (err) {
     console.error('Error updating post:', err);
     res.sendStatus(500);
@@ -112,8 +108,9 @@ app.put('/api/posts/:id', requireAdmin, async (req, res) => {
 
 // Delete
 app.delete('/api/posts/:id', requireAdmin, async (req, res) => {
+  const { id } = req.params;
   try {
-    await Post.findByIdAndDelete(req.params.id);
+    await pool.query(`DELETE FROM posts WHERE id=$1`, [id]);
     res.sendStatus(204);
   } catch (err) {
     console.error('Error deleting post:', err);
@@ -122,7 +119,7 @@ app.delete('/api/posts/:id', requireAdmin, async (req, res) => {
 });
 
 //-----------------------------------------------------------------
-// Contact API (email-only, no DB)
+// Contact API (email-only)
 //-----------------------------------------------------------------
 app.post('/api/contact', async (req, res) => {
   const { name, email, message } = req.body;
@@ -161,4 +158,3 @@ app.get('*', (req, res) =>
 //-----------------------------------------------------------------
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
-```
