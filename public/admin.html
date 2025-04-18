@@ -64,6 +64,7 @@
       const res = await fetch('/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ username: username.value, password: password.value })
       });
       if (res.ok) {
@@ -74,7 +75,7 @@
     });
 
     document.getElementById('logoutBtn').addEventListener('click', async () => {
-      await fetch('/admin/logout', { method: 'POST' });
+      await fetch('/admin/logout', { method: 'POST', credentials: 'include' });
       window.location.reload();
     });
 
@@ -113,7 +114,10 @@
 
     async function deletePost(id) {
       if (!confirm('Delete this insight?')) return;
-      const res = await fetch(`/api/posts/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/posts/${id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
       if (res.ok) loadAndRender();
       else alert('Delete failed');
     }
@@ -141,6 +145,7 @@
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(payload)
       });
       if (res.ok) {
