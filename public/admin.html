@@ -58,7 +58,6 @@
   </div>
 
   <script>
-    // Login handler
     document.getElementById('loginForm').addEventListener('submit', async e => {
       e.preventDefault();
       const { username, password } = e.target;
@@ -74,17 +73,16 @@
       } else alert('Login failed');
     });
 
-    // Logout
     document.getElementById('logoutBtn').addEventListener('click', async () => {
       await fetch('/admin/logout', { method: 'POST' });
       window.location.reload();
     });
 
-    // Fetch & render posts
     async function fetchPosts() {
       const res = await fetch('/api/posts');
       return res.json();
     }
+
     function renderPosts(posts) {
       window.allPosts = posts;
       const list = document.getElementById('postList');
@@ -98,8 +96,8 @@
             <small class="text-gray-500">/${p.slug}</small>
           </div>
           <div class="space-x-2">
-            <button data-id="${p._id}" class="editBtn bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">Edit</button>
-            <button data-id="${p._id}" class="deleteBtn bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Delete</button>
+            <button data-id="${p.id}" class="editBtn bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">Edit</button>
+            <button data-id="${p.id}" class="deleteBtn bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Delete</button>
           </div>
         `;
         list.appendChild(el);
@@ -107,12 +105,12 @@
       document.querySelectorAll('.editBtn').forEach(btn => btn.onclick = () => startEdit(btn.dataset.id));
       document.querySelectorAll('.deleteBtn').forEach(btn => btn.onclick = () => deletePost(btn.dataset.id));
     }
+
     async function loadAndRender() {
       const posts = await fetchPosts();
       renderPosts(posts);
     }
 
-    // Delete post
     async function deletePost(id) {
       if (!confirm('Delete this insight?')) return;
       const res = await fetch(`/api/posts/${id}`, { method: 'DELETE' });
@@ -120,31 +118,38 @@
       else alert('Delete failed');
     }
 
-    // Start editing
     function startEdit(id) {
-      const post = window.allPosts.find(p => p._id === id);
+      const post = window.allPosts.find(p => p.id == id);
       const form = document.getElementById('postForm');
-      form._id.value = post._id;
+      form._id.value = post.id;
       form.title.value = post.title;
       form.excerpt.value = post.excerpt;
       form.slug.value = post.slug;
     }
 
-    // Form submit for create/update
     document.getElementById('postForm').addEventListener('submit', async e => {
       e.preventDefault();
-      const form = e.target; const id = form._id.value;
-      const payload = { title: form.title.value, excerpt: form.excerpt.value, slug: form.slug.value };
+      const form = e.target;
+      const id = form._id.value;
+      const payload = {
+        title: form.title.value,
+        excerpt: form.excerpt.value,
+        slug: form.slug.value
+      };
       const method = id ? 'PUT' : 'POST';
       const url = id ? `/api/posts/${id}` : '/api/posts';
-      const res = await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
       if (res.ok) {
-        form.reset(); form._id.value = '';
+        form.reset();
+        form._id.value = '';
         loadAndRender();
       } else alert('Save failed');
     });
 
-    // Cancel edit
     document.getElementById('cancelEditBtn').addEventListener('click', () => {
       document.getElementById('postForm').reset();
     });
