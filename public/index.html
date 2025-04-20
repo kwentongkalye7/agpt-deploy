@@ -74,34 +74,34 @@
     </div>
   </section>
 
-    <!-- Government Links Section -->
-    <section id="links" class="py-16 bg-gray-100">
-      <div class="container mx-auto px-4">
-        <h2 class="text-3xl font-bold text-center mb-8">Government Links</h2>
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 items-center text-center">
-          <a href="https://www.bir.gov.ph" target="_blank" class="hover:scale-105 transition">
-            <img src="https://upload.wikimedia.org/wikipedia/en/0/05/Bureau_of_Internal_Revenue_%28Philippines%29.svg" alt="BIR" class="h-16 mx-auto mb-2">
-            <span>BIR</span>
-          </a>
-          <a href="https://www.sec.gov.ph" target="_blank" class="hover:scale-105 transition">
-            <img src="https://www.sec.gov.ph/wp-content/uploads/2023/09/SEC-Logo-Vertical.png" alt="SEC" class="h-16 mx-auto mb-2">
-            <span>SEC</span>
-          </a>
-          <a href="https://www.sss.gov.ph" target="_blank" class="hover:scale-105 transition">
-            <img src="https://www.sss.gov.ph/sss/DownloadContent?fileName=ssslogo.png" alt="SSS" class="h-16 mx-auto mb-2">
-            <span>SSS</span>
-          </a>
-          <a href="https://www.pagibigfund.gov.ph" target="_blank" class="hover:scale-105 transition">
-            <img src="https://www.pagibigfund.gov.ph/images/Pag-IBIG-logo.png" alt="Pag-IBIG" class="h-16 mx-auto mb-2">
-            <span>Pag-IBIG</span>
-          </a>
-          <a href="https://www.philhealth.gov.ph" target="_blank" class="hover:scale-105 transition">
-            <img src="https://www.philhealth.gov.ph/images/logo.png" alt="PhilHealth" class="h-16 mx-auto mb-2">
-            <span>PhilHealth</span>
-          </a>
-        </div>
+  <!-- Government Links Section -->
+  <section id="links" class="py-16 bg-gray-100">
+    <div class="container mx-auto px-4">
+      <h2 class="text-3xl font-bold text-center mb-8">Useful Government Links</h2>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 items-center text-center">
+        <a href="https://www.bir.gov.ph" target="_blank" class="hover:scale-105 transition">
+          <img src="/assets/logos/bir.png" alt="BIR" class="h-16 mx-auto mb-2">
+          <span>BIR</span>
+        </a>
+        <a href="https://www.sec.gov.ph" target="_blank" class="hover:scale-105 transition">
+          <img src="/assets/logos/sec.png" alt="SEC" class="h-16 mx-auto mb-2">
+          <span>SEC</span>
+        </a>
+        <a href="https://www.sss.gov.ph" target="_blank" class="hover:scale-105 transition">
+          <img src="/assets/logos/sss.png" alt="SSS" class="h-16 mx-auto mb-2">
+          <span>SSS</span>
+        </a>
+        <a href="https://www.pagibigfund.gov.ph" target="_blank" class="hover:scale-105 transition">
+          <img src="/assets/logos/pagibig.png" alt="Pag-IBIG" class="h-16 mx-auto mb-2">
+          <span>Pag-IBIG</span>
+        </a>
+        <a href="https://www.philhealth.gov.ph" target="_blank" class="hover:scale-105 transition">
+          <img src="/assets/logos/philhealth.png" alt="PhilHealth" class="h-16 mx-auto mb-2">
+          <span>PhilHealth</span>
+        </a>
       </div>
-    </section>
+    </div>
+  </section>
 
   <!-- Contact Section -->
   <section id="contact" class="py-16 bg-gray-50">
@@ -122,6 +122,7 @@
         </div>
         <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">Send Message</button>
       </form>
+
       <div class="mt-8 text-center space-y-3 text-lg">
         <p class="flex items-center justify-center gap-2">
           <i class="ph ph-phone"></i> <a href="tel:+528204672" class="text-blue-600 hover:underline">(052) 820-4672</a>
@@ -136,10 +137,16 @@
           </a>
         </p>
       </div>
+
+      <div class="mt-10 text-center text-sm text-gray-600">
+        <div id="time-exchange" class="bg-white border rounded-lg px-4 py-3 mt-6 shadow">
+          <p class="mb-1 font-semibold">📍 Philippine Standard Time: <span id="ph-time">Loading...</span></p>
+          <p class="font-semibold">💱 PHP to USD Exchange Rate: <span id="exchange-rate">Loading...</span></p>
+        </div>
+      </div>
     </div>
   </section>
 
-  <!-- Footer -->
   <footer class="bg-white border-t py-6">
     <div class="container mx-auto px-4 text-center">
       <p class="text-sm">&copy; 2025 AGPT Accounting and Business Consultancy. All rights reserved.</p>
@@ -186,6 +193,24 @@
       else alert('Error sending message');
       e.target.reset();
     });
+
+    function updatePHTime() {
+      const phTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" });
+      document.getElementById("ph-time").textContent = phTime;
+    }
+
+    updatePHTime();
+    setInterval(updatePHTime, 10000);
+
+    fetch('https://open.er-api.com/v6/latest/PHP')
+      .then(res => res.json())
+      .then(data => {
+        const rate = data.rates?.USD;
+        if (rate) document.getElementById("exchange-rate").textContent = `₱1 = $${rate.toFixed(2)} USD`;
+      })
+      .catch(() => {
+        document.getElementById("exchange-rate").textContent = "Unavailable";
+      });
   </script>
 </body>
 </html>
