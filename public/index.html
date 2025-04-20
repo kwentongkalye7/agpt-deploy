@@ -202,15 +202,15 @@
     updatePHTime();
     setInterval(updatePHTime, 10000);
 
-    fetch('https://open.er-api.com/v6/latest/USD')
+    fetch('https://api.exchangerate.host/latest?base=USD&symbols=PHP')
       .then(res => res.json())
       .then(data => {
         const rate = data.rates?.PHP;
         if (rate) {
           document.getElementById("exchange-rate").textContent = `$1 = ₱${rate.toFixed(2)} PHP`;
         }
-        if (data.time_last_update_utc) {
-          document.getElementById("exchange-timestamp").textContent = `Updated: ${data.time_last_update_utc}`;
+        if (data.date) {
+          document.getElementById("exchange-timestamp").textContent = `Updated: ${data.date}`;
         }
       })
       .catch(() => {
