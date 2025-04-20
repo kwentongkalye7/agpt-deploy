@@ -12,17 +12,17 @@
 <body class="font-sans antialiased text-gray-800 scroll-smooth">
   <!-- Navigation -->
   <header class="bg-white shadow sticky top-0 z-50">
-    <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+    <div class="container mx-auto px-4 py-4 flex items-center justify-between relative">
       <a href="#home"><img src="/assets/new-AGPT-logo.svg" alt="AGPT Logo" class="w-12"></a>
-      <button id="menu-toggle" class="md:hidden text-gray-600 focus:outline-none text-2xl">☰</button>
-      <nav id="nav-links" class="hidden md:block">
-        <ul class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-6 mt-4 md:mt-0">
-          <li><a href="#home" class="hover:text-blue-600">Home</a></li>
-          <li><a href="#about" class="hover:text-blue-600">About</a></li>
-          <li><a href="#services" class="hover:text-blue-600">Services</a></li>
-          <li><a href="#resources" class="hover:text-blue-600">Resources</a></li>
-          <li><a href="#links" class="hover:text-blue-600">Links</a></li>
-          <li><a href="#contact" class="hover:text-blue-600">Contact</a></li>
+      <button id="menu-toggle" class="md:hidden text-gray-600 focus:outline-none text-3xl">☰</button>
+      <nav id="nav-links" class="hidden md:flex md:items-center md:space-x-6 absolute md:static top-full left-0 w-full md:w-auto bg-white md:bg-transparent shadow md:shadow-none px-6 md:px-0 py-4 md:py-0 z-50">
+        <ul class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-6 w-full">
+          <li><a href="#home" class="hover:text-blue-600 block">Home</a></li>
+          <li><a href="#about" class="hover:text-blue-600 block">About</a></li>
+          <li><a href="#services" class="hover:text-blue-600 block">Services</a></li>
+          <li><a href="#resources" class="hover:text-blue-600 block">Resources</a></li>
+          <li><a href="#links" class="hover:text-blue-600 block">Links</a></li>
+          <li><a href="#contact" class="hover:text-blue-600 block">Contact</a></li>
         </ul>
       </nav>
     </div>
@@ -37,7 +37,7 @@
     </div>
   </section>
 
-  <!-- About Us -->
+  <!-- About Section -->
   <section id="about" class="py-16">
     <div class="container mx-auto px-4">
       <h2 class="text-3xl font-bold text-center mb-8">About Us</h2>
@@ -45,7 +45,7 @@
     </div>
   </section>
 
-  <!-- Services -->
+  <!-- Services Section -->
   <section id="services" class="py-16 bg-gray-50">
     <div class="container mx-auto px-4">
       <h2 class="text-3xl font-bold text-center mb-12">Our Services</h2>
@@ -66,31 +66,44 @@
     </div>
   </section>
 
-  <!-- Resources -->
+  <!-- Resources Section -->
   <section id="resources" class="py-16">
     <div class="container mx-auto px-4">
       <h2 class="text-3xl font-bold text-center mb-12">Latest News</h2>
-      <div id="posts" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-justify">
-        <!-- Blog posts will be loaded here via JS -->
+      <div id="posts" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-justify"></div>
+    </div>
+  </section>
+
+  <!-- Government Links Section -->
+  <section id="links" class="py-16 bg-gray-100">
+    <div class="container mx-auto px-4">
+      <h2 class="text-3xl font-bold text-center mb-8">Useful Government Links</h2>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 items-center text-center">
+        <a href="https://www.bir.gov.ph" target="_blank" class="hover:scale-105 transition">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/7/7e/Bureau_of_Internal_Revenue_%28BIR%29.svg" alt="BIR" class="h-16 mx-auto mb-2">
+          <span>BIR</span>
+        </a>
+        <a href="https://www.sec.gov.ph" target="_blank" class="hover:scale-105 transition">
+          <img src="https://upload.wikimedia.org/wikipedia/en/e/e2/Securities_and_Exchange_Commission_%28Philippines%29.svg" alt="SEC" class="h-16 mx-auto mb-2">
+          <span>SEC</span>
+        </a>
+        <a href="https://www.sss.gov.ph" target="_blank" class="hover:scale-105 transition">
+          <img src="https://upload.wikimedia.org/wikipedia/en/thumb/b/b5/SSS_%28Philippines%29_logo.svg/1200px-SSS_%28Philippines%29_logo.svg.png" alt="SSS" class="h-16 mx-auto mb-2">
+          <span>SSS</span>
+        </a>
+        <a href="https://www.pagibigfund.gov.ph" target="_blank" class="hover:scale-105 transition">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Pag-IBIG_Fund_logo.svg" alt="Pag-IBIG" class="h-16 mx-auto mb-2">
+          <span>Pag-IBIG</span>
+        </a>
+        <a href="https://www.philhealth.gov.ph" target="_blank" class="hover:scale-105 transition">
+          <img src="https://upload.wikimedia.org/wikipedia/en/thumb/2/25/PhilHealth_logo.svg/1200px-PhilHealth_logo.svg.png" alt="PhilHealth" class="h-16 mx-auto mb-2">
+          <span>PhilHealth</span>
+        </a>
       </div>
     </div>
   </section>
 
-  <!-- Links -->
-  <section id="links" class="py-16 bg-gray-100">
-    <div class="container mx-auto px-4">
-      <h2 class="text-3xl font-bold text-center mb-8">Useful Government Links</h2>
-      <ul class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-lg text-blue-600">
-        <li><a href="https://www.bir.gov.ph" target="_blank" rel="noopener noreferrer">Bureau of Internal Revenue (BIR)</a></li>
-        <li><a href="https://www.sec.gov.ph" target="_blank" rel="noopener noreferrer">Securities and Exchange Commission (SEC)</a></li>
-        <li><a href="https://www.sss.gov.ph" target="_blank" rel="noopener noreferrer">Social Security System (SSS)</a></li>
-        <li><a href="https://www.pagibigfund.gov.ph" target="_blank" rel="noopener noreferrer">Pag-IBIG Fund</a></li>
-        <li><a href="https://www.philhealth.gov.ph" target="_blank" rel="noopener noreferrer">PhilHealth</a></li>
-      </ul>
-    </div>
-  </section>
-
-  <!-- Contact -->
+  <!-- Contact Section -->
   <section id="contact" class="py-16 bg-gray-50">
     <div class="container mx-auto px-4 max-w-xl">
       <h2 class="text-3xl font-bold text-center mb-8">Contact Us</h2>
@@ -109,7 +122,6 @@
         </div>
         <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">Send Message</button>
       </form>
-
       <div class="mt-8 text-center space-y-3 text-lg">
         <p class="flex items-center justify-center gap-2">
           <i class="ph ph-phone"></i> <a href="tel:+528204672" class="text-blue-600 hover:underline">(052) 820-4672</a>
@@ -138,6 +150,12 @@
     document.getElementById('menu-toggle').addEventListener('click', () => {
       const nav = document.getElementById('nav-links');
       nav.classList.toggle('hidden');
+    });
+
+    document.querySelectorAll('#nav-links a').forEach(link => {
+      link.addEventListener('click', () => {
+        document.getElementById('nav-links').classList.add('hidden');
+      });
     });
 
     fetch('/api/posts')
