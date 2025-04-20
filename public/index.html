@@ -69,7 +69,7 @@
   <!-- Resources Section -->
   <section id="resources" class="py-16">
     <div class="container mx-auto px-4">
-      <h2 class="text-3xl font-bold text-center mb-12">Latest News</h2>
+      <h2 class="text-3xl font-bold text-center mb-12">Latest News and Announcements</h2>
       <div id="posts" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-justify"></div>
     </div>
   </section>
@@ -77,7 +77,7 @@
   <!-- Government Links Section -->
   <section id="links" class="py-16 bg-gray-100">
     <div class="container mx-auto px-4">
-      <h2 class="text-3xl font-bold text-center mb-8">Useful Government Links</h2>
+      <h2 class="text-3xl font-bold text-center mb-8">Government Links</h2>
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 items-center text-center">
         <a href="https://www.bir.gov.ph" target="_blank" class="hover:scale-105 transition">
           <img src="/assets/logos/bir.png" alt="BIR" class="h-16 mx-auto mb-2">
@@ -202,15 +202,21 @@
     updatePHTime();
     setInterval(updatePHTime, 10000);
 
-    fetch('https://open.er-api.com/v6/latest/PHP')
+    fetch('https://open.er-api.com/v6/latest/USD')
       .then(res => res.json())
       .then(data => {
-        const rate = data.rates?.USD;
-        if (rate) document.getElementById("exchange-rate").textContent = `₱1 = $${rate.toFixed(2)} USD`;
+        const rate = data.rates?.PHP;
+        if (rate) {
+          document.getElementById("exchange-rate").textContent = `$1 = ₱${rate.toFixed(2)} PHP`;
+        }
+        if (data.time_last_update_utc) {
+          document.getElementById("exchange-timestamp").textContent = `Updated: ${data.time_last_update_utc}`;
+        }
       })
       .catch(() => {
         document.getElementById("exchange-rate").textContent = "Unavailable";
+        document.getElementById("exchange-timestamp").textContent = "Update time unavailable";
       });
-  </script>
+</script>
 </body>
 </html>
