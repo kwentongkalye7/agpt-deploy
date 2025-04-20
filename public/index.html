@@ -203,27 +203,30 @@
     updatePHTime();
     setInterval(updatePHTime, 10000);
   
-    fetch('https://api.exchangerate.host/latest?base=USD&symbols=PHP')
-      .then(res => res.json())
-      .then(data => {
-        const rate = data.rates?.PHP;
+    fetch("https://api.exchangerate.host/latest?base=USD&symbols=PHP")
+      .then((res) => res.json())
+      .then((data) => {
+        const rate = data?.rates?.PHP;
+        const date = data?.date;
+  
         if (rate) {
           document.getElementById("exchange-rate").textContent = `$1 = ₱${rate.toFixed(2)} PHP`;
         }
-        if (data.date) {
-          const date = new Date(data.date);
-          const formattedDate = date.toLocaleDateString("en-PH", {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
+  
+        if (date) {
+          const formatted = new Date(date).toLocaleDateString("en-PH", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
           });
-          document.getElementById("exchange-timestamp").textContent = `Updated: ${formattedDate}`;
+          document.getElementById("exchange-timestamp").textContent = `Updated: ${formatted}`;
         }
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error("Exchange rate fetch failed:", err);
         document.getElementById("exchange-rate").textContent = "Unavailable";
         document.getElementById("exchange-timestamp").textContent = "Update time unavailable";
       });
-  </script> 
+  </script>  
 </body>
 </html>
