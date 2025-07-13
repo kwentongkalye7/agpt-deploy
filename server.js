@@ -1,7 +1,4 @@
 require('dotenv').config();
-console.log('EMAIL_USER =', process.env.EMAIL_USER);
-console.log('EMAIL_PASS length =', process.env.EMAIL_PASS?.length);
-
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
@@ -15,15 +12,15 @@ const app = express();
 // Middleware
 //-----------------------------------------------------------------
 app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || 'change_this',
+    secret: process.env.SESSION_SECRET || 'a-very-strong-secret-key-change-this',
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 600000 }
+    cookie: { maxAge: 1000 * 60 * 60 * 24 } // 24 hours
   })
 );
-app.use(express.static(path.join(__dirname, 'public')));
 
 //-----------------------------------------------------------------
 // PostgreSQL Connection
@@ -46,7 +43,6 @@ function requireAdmin(req, res, next) {
 //-----------------------------------------------------------------
 // User & Auth Routes
 //-----------------------------------------------------------------
-// Get current user status
 app.get('/users/me', (req, res) => {
     if (req.session.user) {
         res.json(req.session.user);
@@ -55,7 +51,6 @@ app.get('/users/me', (req, res) => {
     }
 });
 
-// Register New Employee
 app.post('/users/register', async (req, res) => {
     const { username, password } = req.body;
     if (!username || !password) {
@@ -77,7 +72,6 @@ app.post('/users/register', async (req, res) => {
     }
 });
 
-// Login
 app.post('/admin/login', async (req, res) => {
   const { username, password } = req.body;
   try {
@@ -97,15 +91,13 @@ app.post('/admin/login', async (req, res) => {
   }
 });
 
-// Logout
 app.post('/admin/logout', (req, res) => {
   req.session.destroy(() => res.sendStatus(200));
 });
 
 //-----------------------------------------------------------------
-// Posts API (PostgreSQL)
+// Original Posts API (for website articles)
 //-----------------------------------------------------------------
-// Create
 app.post('/api/posts', requireAdmin, async (req, res) => {
   const { title, excerpt, slug } = req.body;
   try {
@@ -120,7 +112,6 @@ app.post('/api/posts', requireAdmin, async (req, res) => {
   }
 });
 
-// Read (public)
 app.get('/api/posts', async (req, res) => {
   try {
     const result = await pool.query(
@@ -133,7 +124,6 @@ app.get('/api/posts', async (req, res) => {
   }
 });
 
-// Update
 app.put('/api/posts/:id', requireAdmin, async (req, res) => {
   const { id } = req.params;
   const { title, excerpt, slug } = req.body;
@@ -149,7 +139,6 @@ app.put('/api/posts/:id', requireAdmin, async (req, res) => {
   }
 });
 
-// Delete
 app.delete('/api/posts/:id', requireAdmin, async (req, res) => {
   const { id } = req.params;
   try {
@@ -164,7 +153,6 @@ app.delete('/api/posts/:id', requireAdmin, async (req, res) => {
 //-----------------------------------------------------------------
 // Kanban API (PostgreSQL) - SECURED
 //-----------------------------------------------------------------
-// Read All Cards (Any Logged-in User)
 app.get('/api/kanban', requireLogin, async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM kanban_cards ORDER BY id');
@@ -175,7 +163,6 @@ app.get('/api/kanban', requireLogin, async (req, res) => {
   }
 });
 
-// Create Card (Any Logged-in User)
 app.post('/api/kanban', requireLogin, async (req, res) => {
   const { client, task, owner, due_date, status, blocker_flag, category } = req.body;
   try {
@@ -191,7 +178,6 @@ app.post('/api/kanban', requireLogin, async (req, res) => {
   }
 });
 
-// Update Card (handles completed_at timestamp)
 app.put('/api/kanban/:id', requireLogin, async (req, res) => {
     const { id } = req.params;
     const { client, task, owner, due_date, status, blocker_flag, category } = req.body;
@@ -204,9 +190,9 @@ app.put('/api/kanban/:id', requireLogin, async (req, res) => {
         let completed_at = currentState.rows[0].completed_at;
 
         if (status === 'Done' && oldStatus !== 'Done') {
-            completed_at = new Date(); // Set timestamp when moving to Done
+            completed_at = new Date();
         } else if (status !== 'Done') {
-            completed_at = null; // Clear timestamp if moving out of Done
+            completed_at = null;
         }
 
         const result = await pool.query(
@@ -222,7 +208,6 @@ app.put('/api/kanban/:id', requireLogin, async (req, res) => {
     }
 });
 
-// Patch Card Status (for drag-and-drop)
 app.patch('/api/kanban/:id/status', requireLogin, async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
@@ -251,7 +236,6 @@ app.patch('/api/kanban/:id/status', requireLogin, async (req, res) => {
     }
 });
 
-// Delete Card (Admin Only)
 app.delete('/api/kanban/:id', requireAdmin, async (req, res) => {
   const { id } = req.params;
   try {
@@ -266,7 +250,6 @@ app.delete('/api/kanban/:id', requireAdmin, async (req, res) => {
 //-----------------------------------------------------------------
 // Admin Management API
 //-----------------------------------------------------------------
-// Get all users (Admin only)
 app.get('/api/users', requireAdmin, async (req, res) => {
     try {
         const result = await pool.query('SELECT id, username, role FROM users ORDER BY username');
@@ -277,7 +260,6 @@ app.get('/api/users', requireAdmin, async (req, res) => {
     }
 });
 
-// Delete a user (Admin only)
 app.delete('/api/users/:id', requireAdmin, async (req, res) => {
     const { id } = req.params;
     const adminUserId = req.session.user.id;
@@ -293,11 +275,10 @@ app.delete('/api/users/:id', requireAdmin, async (req, res) => {
     }
 });
 
-// Clear all completed cards (Admin only)
 app.delete('/api/kanban/completed', requireAdmin, async (req, res) => {
     try {
         await pool.query("DELETE FROM kanban_cards WHERE status = 'Done'");
-        res.sendStatus(204); // No Content
+        res.sendStatus(204);
     } catch (err) {
         console.error('Error clearing completed cards:', err);
         res.sendStatus(500);
@@ -305,7 +286,7 @@ app.delete('/api/kanban/completed', requireAdmin, async (req, res) => {
 });
 
 //-----------------------------------------------------------------
-// Contact API (email-only)
+// Original Contact API
 //-----------------------------------------------------------------
 app.post('/api/contact', async (req, res) => {
   const { name, email, message } = req.body;
