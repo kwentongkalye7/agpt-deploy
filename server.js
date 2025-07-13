@@ -222,6 +222,35 @@ app.put('/api/kanban/:id', requireLogin, async (req, res) => {
     }
 });
 
+// Patch Card Status (for drag-and-drop)
+app.patch('/api/kanban/:id/status', requireLogin, async (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+    try {
+        const currentState = await pool.query('SELECT status, completed_at FROM kanban_cards WHERE id = $1', [id]);
+        if (currentState.rows.length === 0) {
+            return res.status(404).send('Card not found');
+        }
+        const oldStatus = currentState.rows[0].status;
+        let completed_at = currentState.rows[0].completed_at;
+
+        if (status === 'Done' && oldStatus !== 'Done') {
+            completed_at = new Date();
+        } else if (status !== 'Done') {
+            completed_at = null;
+        }
+
+        const result = await pool.query(
+            `UPDATE kanban_cards SET status = $1, completed_at = $2 WHERE id = $3 RETURNING *`,
+            [status, completed_at, id]
+        );
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error('Error patching card status:', err);
+        res.sendStatus(500);
+    }
+});
+
 // Delete Card (Admin Only)
 app.delete('/api/kanban/:id', requireAdmin, async (req, res) => {
   const { id } = req.params;

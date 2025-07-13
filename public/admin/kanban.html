@@ -128,8 +128,8 @@
             if (!res.ok) throw new Error('Not logged in');
             currentUser = await res.json();
 
-            loginBtn.classList.add('hidden');
-            addCardBtn.classList.remove('hidden');
+            loginBtn.style.display = 'none';
+            addCardBtn.style.display = 'inline-block';
 
             const welcomeSpan = document.createElement('span');
             welcomeSpan.className = 'text-gray-600';
@@ -139,16 +139,19 @@
             logoutBtn.id = 'logoutBtn';
             logoutBtn.className = 'bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700';
             logoutBtn.textContent = 'Logout';
+
+            userStatusDiv.appendChild(welcomeSpan);
+            userStatusDiv.appendChild(logoutBtn);
+
             logoutBtn.addEventListener('click', async () => {
                 await fetch('/admin/logout', { method: 'POST', credentials: 'include' });
                 window.location.reload();
             });
 
-            userStatusDiv.appendChild(welcomeSpan);
-            userStatusDiv.appendChild(logoutBtn);
         } catch (e) {
             currentUser = null;
-            addCardBtn.classList.add('hidden');
+            addCardBtn.style.display = 'none';
+            loginBtn.style.display = 'inline-block';
         }
     }
 
@@ -221,11 +224,21 @@
                     const cardId = evt.item.dataset.id;
                     const newStatus = evt.to.dataset.status;
                     const card = allCards.find(c => c.id == cardId);
-                    if(card.status === newStatus) return;
-                    card.status = newStatus;
-                    const res = await fetch(`/api/kanban/${cardId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(card) });
-                    if (!res.ok) { alert('Failed to update status. You may need to log in.'); }
-                    fetchAndRenderCards();
+                    if (card.status === newStatus) return;
+
+                    const res = await fetch(`/api/kanban/${cardId}/status`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ status: newStatus })
+                    });
+
+                    if (!res.ok) {
+                        alert('Failed to update status. You may need to log in.');
+                        fetchAndRenderCards();
+                    } else {
+                        fetchAndRenderCards();
+                    }
                 }
             });
         });
