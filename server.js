@@ -242,186 +242,403 @@ app.get('/debug/session', (req, res) => {
 });
 
 //-----------------------------------------------------------------
-// Original Posts API (for website articles)
+// Enhanced Posts API with Better Error Handling
 //-----------------------------------------------------------------
 app.post('/api/posts', requireAdmin, async (req, res) => {
+  console.log('\n=== POST /api/posts ===');
+  console.log('Admin creating post:', req.session.user);
+  console.log('Request body:', req.body);
+  
   const { title, excerpt, slug } = req.body;
+  
+  if (!title || !excerpt || !slug) {
+    console.log('❌ Missing required fields');
+    return res.status(400).json({ error: 'Title, excerpt, and slug are required' });
+  }
+  
   try {
     const result = await pool.query(
       `INSERT INTO posts (title, excerpt, slug) VALUES ($1, $2, $3) RETURNING *`,
       [title, excerpt, slug]
     );
+    console.log('✅ Post created successfully:', result.rows[0]);
     res.status(201).json(result.rows[0]);
   } catch (err) {
-    console.error('Error creating post:', err);
-    res.status(500).json({ error: 'Failed to create post' });
+    console.error('❌ Error creating post:', err);
+    console.error('Error details:', {
+      message: err.message,
+      code: err.code,
+      detail: err.detail
+    });
+    res.status(500).json({ 
+      error: 'Failed to create post', 
+      details: err.message,
+      code: err.code 
+    });
   }
 });
 
 app.get('/api/posts', async (req, res) => {
+  console.log('\n=== GET /api/posts ===');
   try {
     const result = await pool.query(
       `SELECT id, title, excerpt, slug, created_at FROM posts ORDER BY created_at DESC LIMIT 6`
     );
+    console.log(`✅ Fetched ${result.rows.length} posts successfully`);
     res.json(result.rows);
   } catch (err) {
-    console.error('Error fetching posts:', err);
-    res.status(500).json({ error: 'Failed to fetch posts' });
+    console.error('❌ Error fetching posts:', err);
+    res.status(500).json({ 
+      error: 'Failed to fetch posts', 
+      details: err.message 
+    });
   }
 });
 
 app.put('/api/posts/:id', requireAdmin, async (req, res) => {
+  console.log('\n=== PUT /api/posts/:id ===');
+  console.log('Admin updating post:', req.session.user);
+  console.log('Post ID:', req.params.id);
+  console.log('Request body:', req.body);
+  
   const { id } = req.params;
   const { title, excerpt, slug } = req.body;
+  
+  if (!title || !excerpt || !slug) {
+    console.log('❌ Missing required fields');
+    return res.status(400).json({ error: 'Title, excerpt, and slug are required' });
+  }
+  
   try {
+    // First check if post exists
+    const existingPost = await pool.query('SELECT * FROM posts WHERE id = $1', [id]);
+    if (existingPost.rows.length === 0) {
+      console.log('❌ Post not found');
+      return res.status(404).json({ error: 'Post not found' });
+    }
+    
     const result = await pool.query(
       `UPDATE posts SET title=$1, excerpt=$2, slug=$3 WHERE id=$4 RETURNING *`,
       [title, excerpt, slug, id]
     );
+    
+    if (result.rows.length === 0) {
+      console.log('❌ Update returned no rows');
+      return res.status(404).json({ error: 'Post not found after update' });
+    }
+    
+    console.log('✅ Post updated successfully:', result.rows[0]);
     res.json(result.rows[0]);
   } catch (err) {
-    console.error('Error updating post:', err);
-    res.status(500).json({ error: 'Failed to update post' });
+    console.error('❌ Error updating post:', err);
+    console.error('Error details:', {
+      message: err.message,
+      code: err.code,
+      detail: err.detail
+    });
+    res.status(500).json({ 
+      error: 'Failed to update post', 
+      details: err.message,
+      code: err.code 
+    });
   }
 });
 
 app.delete('/api/posts/:id', requireAdmin, async (req, res) => {
+  console.log('\n=== DELETE /api/posts/:id ===');
+  console.log('Admin deleting post:', req.session.user);
+  console.log('Post ID:', req.params.id);
+  
   const { id } = req.params;
+  
   try {
-    await pool.query(`DELETE FROM posts WHERE id=$1`, [id]);
+    // First check if post exists
+    const existingPost = await pool.query('SELECT * FROM posts WHERE id = $1', [id]);
+    if (existingPost.rows.length === 0) {
+      console.log('❌ Post not found');
+      return res.status(404).json({ error: 'Post not found' });
+    }
+    
+    console.log('Deleting post:', existingPost.rows[0]);
+    
+    const result = await pool.query(`DELETE FROM posts WHERE id=$1 RETURNING id`, [id]);
+    
+    if (result.rows.length === 0) {
+      console.log('❌ Delete returned no rows');
+      return res.status(404).json({ error: 'Post not found for deletion' });
+    }
+    
+    console.log('✅ Post deleted successfully');
     res.sendStatus(204);
   } catch (err) {
-    console.error('Error deleting post:', err);
-    res.status(500).json({ error: 'Failed to delete post' });
+    console.error('❌ Error deleting post:', err);
+    console.error('Error details:', {
+      message: err.message,
+      code: err.code,
+      detail: err.detail
+    });
+    res.status(500).json({ 
+      error: 'Failed to delete post', 
+      details: err.message,
+      code: err.code 
+    });
   }
 });
 
 //-----------------------------------------------------------------
-// Kanban API (PostgreSQL) - SECURED WITH BETTER ERROR HANDLING
+// Enhanced Kanban API with Better Error Handling
 //-----------------------------------------------------------------
 app.get('/api/kanban', requireLogin, async (req, res) => {
+  console.log('\n=== GET /api/kanban ===');
+  console.log('User:', req.session.user);
+  
   try {
     const result = await pool.query('SELECT * FROM kanban_cards ORDER BY id');
+    console.log(`✅ Fetched ${result.rows.length} cards successfully`);
     res.json(result.rows);
   } catch (err) {
-    console.error('Error fetching cards:', err);
-    res.status(500).json({ error: 'Failed to fetch cards' });
+    console.error('❌ Error fetching cards:', err);
+    res.status(500).json({ error: 'Failed to fetch cards', details: err.message });
   }
 });
 
 app.post('/api/kanban', requireLogin, async (req, res) => {
-  const { client, task, owner, due_date, status, blocker_flag, category } = req.body;
   console.log('\n=== POST /api/kanban ===');
   console.log('User making request:', req.session.user);
+  console.log('Request body:', req.body);
+  
+  const { client, task, owner, due_date, status, blocker_flag, category } = req.body;
+  
+  // Validate required fields
+  if (!client || !task) {
+    console.log('❌ Missing required fields');
+    return res.status(400).json({ error: 'Client and task are required' });
+  }
   
   try {
-    const result = await pool.query(
-      `INSERT INTO kanban_cards (client, task, owner, due_date, status, blocker_flag, category)
-       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-      [client, task, owner, due_date, status || 'To Do', blocker_flag, category]
-    );
-    console.log('✅ Card created successfully');
+    const query = `
+      INSERT INTO kanban_cards (client, task, owner, due_date, status, blocker_flag, category)
+      VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *
+    `;
+    const values = [
+      client, 
+      task, 
+      owner || null, 
+      due_date || null, 
+      status || 'To Do', 
+      blocker_flag || false, 
+      category || null
+    ];
+    
+    console.log('Executing query:', query);
+    console.log('With values:', values);
+    
+    const result = await pool.query(query, values);
+    console.log('✅ Card created successfully:', result.rows[0]);
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error('❌ Error creating card:', err);
-    res.status(500).json({ error: 'Failed to create card' });
+    console.error('Error details:', {
+      message: err.message,
+      code: err.code,
+      detail: err.detail
+    });
+    res.status(500).json({ 
+      error: 'Failed to create card', 
+      details: err.message,
+      code: err.code 
+    });
   }
 });
 
 app.put('/api/kanban/:id', requireLogin, async (req, res) => {
-    const { id } = req.params;
-    const { client, task, owner, due_date, status, blocker_flag, category } = req.body;
     console.log('\n=== PUT /api/kanban/:id ===');
     console.log('User making request:', req.session.user);
+    console.log('Card ID:', req.params.id);
+    console.log('Request body:', req.body);
+    
+    const { id } = req.params;
+    const { client, task, owner, due_date, status, blocker_flag, category } = req.body;
+    
+    // Validate required fields
+    if (!client || !task) {
+      console.log('❌ Missing required fields');
+      return res.status(400).json({ error: 'Client and task are required' });
+    }
     
     try {
-        const currentState = await pool.query('SELECT status, completed_at FROM kanban_cards WHERE id = $1', [id]);
-        if (currentState.rows.length === 0) {
+        // First check if card exists
+        const existingCard = await pool.query('SELECT * FROM kanban_cards WHERE id = $1', [id]);
+        if (existingCard.rows.length === 0) {
+            console.log('❌ Card not found');
             return res.status(404).json({ error: 'Card not found' });
         }
         
-        const oldStatus = currentState.rows[0].status;
-        let completed_at = currentState.rows[0].completed_at;
+        console.log('Current card state:', existingCard.rows[0]);
+        
+        const oldStatus = existingCard.rows[0].status;
+        let completed_at = existingCard.rows[0].completed_at;
 
         if (status === 'Done' && oldStatus !== 'Done') {
             completed_at = new Date();
+            console.log('Setting completion timestamp:', completed_at);
         } else if (status !== 'Done') {
             completed_at = null;
+            console.log('Clearing completion timestamp');
         }
 
-        const result = await pool.query(
-            `UPDATE kanban_cards
-             SET client=$1, task=$2, owner=$3, due_date=$4, status=$5, blocker_flag=$6, category=$7, completed_at=$8
-             WHERE id=$9 RETURNING *`,
-            [client, task, owner, due_date, status, blocker_flag, category, completed_at, id]
-        );
+        const query = `
+          UPDATE kanban_cards
+          SET client=$1, task=$2, owner=$3, due_date=$4, status=$5, blocker_flag=$6, category=$7, completed_at=$8
+          WHERE id=$9 RETURNING *
+        `;
+        const values = [
+          client, 
+          task, 
+          owner || null, 
+          due_date || null, 
+          status, 
+          blocker_flag || false, 
+          category || null, 
+          completed_at, 
+          id
+        ];
+        
+        console.log('Executing update query:', query);
+        console.log('With values:', values);
+        
+        const result = await pool.query(query, values);
         
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Card not found' });
+            console.log('❌ Update returned no rows');
+            return res.status(404).json({ error: 'Card not found after update' });
         }
         
-        console.log('✅ Card updated successfully');
+        console.log('✅ Card updated successfully:', result.rows[0]);
         res.json(result.rows[0]);
     } catch (err) {
         console.error('❌ Error updating card:', err);
-        res.status(500).json({ error: 'Failed to update card' });
+        console.error('Error details:', {
+          message: err.message,
+          code: err.code,
+          detail: err.detail
+        });
+        res.status(500).json({ 
+          error: 'Failed to update card', 
+          details: err.message,
+          code: err.code 
+        });
     }
 });
 
 app.patch('/api/kanban/:id/status', requireLogin, async (req, res) => {
-    const { id } = req.params;
-    const { status } = req.body;
     console.log('\n=== PATCH /api/kanban/:id/status ===');
     console.log('User making request:', req.session.user);
-    console.log('Updating card', id, 'to status:', status);
+    console.log('Card ID:', req.params.id);
+    console.log('New status:', req.body.status);
+    
+    const { id } = req.params;
+    const { status } = req.body;
+    
+    if (!status) {
+      console.log('❌ Status is required');
+      return res.status(400).json({ error: 'Status is required' });
+    }
     
     try {
-        const currentState = await pool.query('SELECT status, completed_at FROM kanban_cards WHERE id = $1', [id]);
+        // Check if card exists and get current state
+        const currentState = await pool.query('SELECT * FROM kanban_cards WHERE id = $1', [id]);
         if (currentState.rows.length === 0) {
+            console.log('❌ Card not found');
             return res.status(404).json({ error: 'Card not found' });
         }
+        
+        console.log('Current card:', currentState.rows[0]);
         
         const oldStatus = currentState.rows[0].status;
         let completed_at = currentState.rows[0].completed_at;
 
         if (status === 'Done' && oldStatus !== 'Done') {
             completed_at = new Date();
+            console.log('Setting completion timestamp:', completed_at);
         } else if (status !== 'Done') {
             completed_at = null;
+            console.log('Clearing completion timestamp');
         }
 
-        const result = await pool.query(
-            `UPDATE kanban_cards SET status = $1, completed_at = $2 WHERE id = $3 RETURNING *`,
-            [status, completed_at, id]
-        );
+        const query = `
+          UPDATE kanban_cards 
+          SET status = $1, completed_at = $2
+          WHERE id = $3 
+          RETURNING *
+        `;
+        const values = [status, completed_at, id];
+        
+        console.log('Executing status update:', query);
+        console.log('With values:', values);
+        
+        const result = await pool.query(query, values);
         
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Card not found' });
+            console.log('❌ Status update returned no rows');
+            return res.status(404).json({ error: 'Card not found after status update' });
         }
         
-        console.log('✅ Card status updated successfully');
+        console.log('✅ Card status updated successfully:', result.rows[0]);
         res.json(result.rows[0]);
     } catch (err) {
-        console.error('❌ Error patching card status:', err);
-        res.status(500).json({ error: 'Failed to update status' });
+        console.error('❌ Error updating card status:', err);
+        console.error('Error details:', {
+          message: err.message,
+          code: err.code,
+          detail: err.detail
+        });
+        res.status(500).json({ 
+          error: 'Failed to update status', 
+          details: err.message,
+          code: err.code 
+        });
     }
 });
 
 app.delete('/api/kanban/:id', requireAdmin, async (req, res) => {
-  const { id } = req.params;
   console.log('\n=== DELETE /api/kanban/:id ===');
-  console.log('Admin deleting card:', id);
+  console.log('Admin deleting individual card:', req.session.user);
+  console.log('Card ID:', req.params.id);
+  
+  const { id } = req.params;
   
   try {
-    const result = await pool.query('DELETE FROM kanban_cards WHERE id=$1 RETURNING id', [id]);
-    if (result.rows.length === 0) {
+    // First check if card exists
+    const existingCard = await pool.query('SELECT * FROM kanban_cards WHERE id = $1', [id]);
+    if (existingCard.rows.length === 0) {
+      console.log('❌ Card not found');
       return res.status(404).json({ error: 'Card not found' });
     }
-    console.log('✅ Card deleted successfully');
+    
+    console.log('Deleting card:', existingCard.rows[0]);
+    
+    const result = await pool.query('DELETE FROM kanban_cards WHERE id = $1 RETURNING id', [id]);
+    
+    if (result.rows.length === 0) {
+      console.log('❌ Delete returned no rows');
+      return res.status(404).json({ error: 'Card not found for deletion' });
+    }
+    
+    console.log('✅ Individual card deleted successfully');
     res.sendStatus(204);
   } catch (err) {
-    console.error('❌ Error deleting card:', err);
-    res.status(500).json({ error: 'Failed to delete card' });
+    console.error('❌ Error deleting individual card:', err);
+    console.error('Error details:', {
+      message: err.message,
+      code: err.code,
+      detail: err.detail
+    });
+    res.status(500).json({ 
+      error: 'Failed to delete card', 
+      details: err.message,
+      code: err.code 
+    });
   }
 });
 
@@ -463,21 +680,75 @@ app.delete('/api/users/:id', requireAdmin, async (req, res) => {
     }
 });
 
+// ENHANCED Clear Completed Cards Endpoint
 app.delete('/api/kanban/completed', requireAdmin, async (req, res) => {
     console.log('\n=== DELETE /api/kanban/completed ===');
-    console.log('Admin clearing completed cards');
+    console.log('Admin clearing completed cards:', req.session.user);
     
     try {
-        const result = await pool.query("DELETE FROM kanban_cards WHERE status = 'Done' RETURNING id");
-        console.log(`✅ Deleted ${result.rows.length} completed cards`);
+        // First, let's see what cards we're trying to delete
+        const doneCards = await pool.query("SELECT id, client, task FROM kanban_cards WHERE status = 'Done'");
+        console.log(`Found ${doneCards.rows.length} cards in Done status:`, doneCards.rows);
+        
+        if (doneCards.rows.length === 0) {
+            console.log('ℹ️ No cards in Done status to delete');
+            return res.status(200).json({ 
+                success: true, 
+                deletedCount: 0,
+                message: 'No completed cards to delete'
+            });
+        }
+        
+        // Try to delete each card individually to identify any problem cards
+        let deletedCount = 0;
+        let failedCards = [];
+        
+        for (const card of doneCards.rows) {
+            try {
+                const deleteResult = await pool.query("DELETE FROM kanban_cards WHERE id = $1 AND status = 'Done' RETURNING id", [card.id]);
+                if (deleteResult.rows.length > 0) {
+                    deletedCount++;
+                    console.log(`✅ Deleted card ${card.id}: ${card.client} - ${card.task}`);
+                } else {
+                    console.log(`⚠️ Card ${card.id} was not deleted (may have changed status)`);
+                }
+            } catch (err) {
+                console.error(`❌ Failed to delete card ${card.id}:`, err.message);
+                failedCards.push({ id: card.id, client: card.client, error: err.message });
+            }
+        }
+        
+        if (failedCards.length > 0) {
+            console.log('Some cards failed to delete:', failedCards);
+            return res.status(207).json({ // 207 = Multi-Status
+                success: true,
+                deletedCount: deletedCount,
+                failedCount: failedCards.length,
+                failedCards: failedCards,
+                message: `Deleted ${deletedCount} cards, ${failedCards.length} failed`
+            });
+        }
+        
+        console.log(`✅ Successfully deleted all ${deletedCount} completed cards`);
         res.status(200).json({ 
             success: true, 
-            deletedCount: result.rows.length,
-            message: `Successfully deleted ${result.rows.length} completed cards`
+            deletedCount: deletedCount,
+            message: `Successfully deleted ${deletedCount} completed cards`
         });
+        
     } catch (err) {
-        console.error('❌ Error clearing completed cards:', err);
-        res.status(500).json({ error: 'Failed to clear completed cards', details: err.message });
+        console.error('❌ Error in clear completed cards:', err);
+        console.error('Error details:', {
+            message: err.message,
+            code: err.code,
+            detail: err.detail,
+            stack: err.stack
+        });
+        res.status(500).json({ 
+            error: 'Failed to clear completed cards', 
+            details: err.message,
+            code: err.code 
+        });
     }
 });
 

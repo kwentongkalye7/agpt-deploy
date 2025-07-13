@@ -1,16 +1,4 @@
-<main id="board-container" class="container mx-auto p-4 hidden">
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white rounded-lg shadow"><h2 class="text-xl font-bold p-4 border-b">To Do</h2><div id="col-todo" data-status="To Do" class="p-4 space-y-4 kanban-column"></div></div>
-        <div class="bg-white rounded-lg shadow"><h2 class="text-xl font-bold p-4 border-b">In Progress</h2><div id="col-inprogress" data-status="In Progress" class="p-4 space-y-4 kanban-column"></div></div>
-        <div class="bg-white rounded-lg shadow"><h2 class="text-xl font-bold p-4 border-b">Review</h2><div id="col-review" data-status="Review" class="p-4 space-y-4 kanban-column"></div></div>
-        <div class="bg-white rounded-lg shadow"><h2 class="text-xl font-bold p-4 border-b">Done</h2><div id="col-done" data-status="Done" class="p-4 space-y-4 kanban-column"></div></div>
-    </div>
-  </main>
-  <div id="login-prompt" class="container mx-auto p-8 text-center bg-white mt-8 rounded-lg shadow">
-    <h2 class="text-2xl font-bold">Access Denied</h2>
-    <p class="mt-2">Please log in to view the Kanban board.</p>
-    <a href="/admin/login.html" class="mt-4 inline-block bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">Login</a>
-  </div><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -27,7 +15,6 @@
     .color-stripe-red { border-left-color: #dc3545; }
     .blocker-overlay { position: absolute; top: 8px; right: 8px; font-size: 1.5rem; line-height: 1; }
     .modal { display: none; } .modal.is-open { display: flex; }
-    .debug-info { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 5px; font-family: monospace; font-size: 12px; }
   </style>
 </head>
 <body class="bg-gray-100 font-sans">
@@ -44,6 +31,21 @@
       </div>
     </div>
   </header>
+
+  <main id="board-container" class="container mx-auto p-4 hidden">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white rounded-lg shadow"><h2 class="text-xl font-bold p-4 border-b">To Do</h2><div id="col-todo" data-status="To Do" class="p-4 space-y-4 kanban-column"></div></div>
+        <div class="bg-white rounded-lg shadow"><h2 class="text-xl font-bold p-4 border-b">In Progress</h2><div id="col-inprogress" data-status="In Progress" class="p-4 space-y-4 kanban-column"></div></div>
+        <div class="bg-white rounded-lg shadow"><h2 class="text-xl font-bold p-4 border-b">Review</h2><div id="col-review" data-status="Review" class="p-4 space-y-4 kanban-column"></div></div>
+        <div class="bg-white rounded-lg shadow"><h2 class="text-xl font-bold p-4 border-b">Done</h2><div id="col-done" data-status="Done" class="p-4 space-y-4 kanban-column"></div></div>
+    </div>
+  </main>
+  
+  <div id="login-prompt" class="container mx-auto p-8 text-center bg-white mt-8 rounded-lg shadow">
+    <h2 class="text-2xl font-bold">Access Denied</h2>
+    <p class="mt-2">Please log in to view the Kanban board.</p>
+    <a href="/admin/login.html" class="mt-4 inline-block bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">Login</a>
+  </div>
 
   <!-- Error Modal -->
   <div id="errorModal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center">
@@ -174,8 +176,6 @@
             showError('Authentication Error', error.message);
             document.getElementById('board-container').classList.add('hidden');
             document.getElementById('login-prompt').classList.remove('hidden');
-            
-            if (debugMode) updateDebugInfo();
         }
     }
 
