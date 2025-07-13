@@ -37,7 +37,10 @@
   </div>
 
   <script>
+    console.log('Users.html script loaded');
+
     function showModal(title, message, isError = false) {
+      console.log('Showing modal:', title, message);
       const modal = document.getElementById('messageModal');
       const modalTitle = document.getElementById('modalTitle');
       const modalMessage = document.getElementById('modalMessage');
@@ -57,6 +60,7 @@
     }
 
     async function checkAdminStatusAndLoad() {
+      console.log('Checking admin status...');
       const adminContent = document.getElementById('admin-content');
       const authMessage = document.getElementById('auth-message');
       try {
@@ -66,17 +70,21 @@
           throw new Error(errorData.error || 'Not logged in');
         }
         const user = await res.json();
+        console.log('Current user:', user);
+        
         if (user.role !== 'admin') throw new Error('Access denied. Admin role required.');
 
         authMessage.classList.add('hidden');
         adminContent.classList.remove('hidden');
         loadUsers(user.id);
       } catch (e) {
+        console.error('Admin check failed:', e);
         authMessage.innerHTML = `<h2 class="text-xl font-semibold text-red-600">${e.message}</h2><p class="mt-2">Please log in as an administrator to access this page.</p>`;
       }
     }
 
     async function loadUsers(currentAdminId) {
+      console.log('Loading users...');
       try {
         const res = await fetch('/api/users', { credentials: 'include' });
         if (!res.ok) {
@@ -84,6 +92,8 @@
           throw new Error(errorData.error);
         }
         const users = await res.json();
+        console.log('Loaded users:', users);
+        
         const listDiv = document.getElementById('userList');
         listDiv.innerHTML = '';
         users.forEach(user => {
@@ -102,11 +112,13 @@
           btn.addEventListener('click', () => deleteUser(btn.dataset.id));
         });
       } catch (e) {
+        console.error('Load users error:', e);
         showModal('Error', `Failed to load users: ${e.message}`, true);
       }
     }
 
     async function deleteUser(userId) {
+      console.log('Deleting user:', userId);
       if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
       
       try {
@@ -129,19 +141,33 @@
     }
 
     async function clearDoneCards() {
-        if (!confirm("Are you sure you want to permanently delete all 'Done' cards? This cannot be undone.")) return;
+        console.log('Clear done cards button clicked!');
+        
+        if (!confirm("Are you sure you want to permanently delete all 'Done' cards? This cannot be undone.")) {
+            console.log('User cancelled clear done cards');
+            return;
+        }
+        
+        console.log('Making request to clear done cards...');
         
         try {
             const res = await fetch('/api/kanban/completed', { 
               method: 'DELETE', 
-              credentials: 'include' 
+              credentials: 'include',
+              headers: {
+                'Content-Type': 'application/json'
+              }
             });
+            
+            console.log('Clear done cards response status:', res.status);
             
             if (res.ok) {
                 const result = await res.json().catch(() => ({ message: 'Done cards cleared successfully.' }));
+                console.log('Clear done cards success:', result);
                 showModal('Success', result.message || 'Done cards cleared successfully.');
             } else {
                 const errorData = await res.json().catch(() => ({ error: 'Unknown error occurred' }));
+                console.error('Clear done cards error response:', errorData);
                 throw new Error(errorData.error || `HTTP ${res.status}`);
             }
         } catch (e) {
@@ -151,17 +177,30 @@
     }
 
     document.addEventListener('DOMContentLoaded', async () => {
+        console.log('DOM loaded, initializing...');
+        
         await checkAdminStatusAndLoad();
         
+        // FIXED: Clear done cards button event listener
         const clearBtn = document.getElementById('clearDoneBtn');
         if (clearBtn) {
-            clearBtn.addEventListener('click', clearDoneCards);
+            console.log('Adding click listener to clear done button');
+            clearBtn.addEventListener('click', (e) => {
+                console.log('Clear done button clicked!');
+                e.preventDefault();
+                clearDoneCards();
+            });
+        } else {
+            console.error('Clear done button not found!');
         }
 
+        // Modal close button
         const modalClose = document.getElementById('modalClose');
         if (modalClose) {
             modalClose.addEventListener('click', hideModal);
         }
+        
+        console.log('Initialization complete');
     });
   </script>
 </body>
