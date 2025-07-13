@@ -54,7 +54,7 @@
     <a href="/admin/login.html" class="mt-4 inline-block bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">Login</a>
   </div>
 
-  <!-- Enhanced Error Modal -->
+  <!-- Error Modal -->
   <div id="errorModal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center">
     <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg">
       <h2 id="errorTitle" class="text-2xl font-bold mb-4 text-red-600">Error</h2>
@@ -80,20 +80,41 @@
         <div class="mt-6 flex justify-end gap-4">
           <button type="button" id="deleteCardBtn" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 hidden">Delete</button>
           <button type="button" id="closeModalBtn" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">Cancel</button>
-          <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save Card</button>
+          <button type="submit" id="saveCardBtn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save Card</button>
         </div>
       </form>
     </div>
   </div>
 
   <script>
-    const categoryIcons = { 'Bookkeeping': '📚', 'Tax Filing (Current)': '📅', 'Preparation of AFS & filing of ITR': '📊', 'General Information Sheet Preparation': '📋', 'BIR LOA Processing': '✉️🔍', 'Open Case Processing - Tax Returns': '📂🔓', 'Business Registration Processing': '🏢➕', 'Business Closure Processing': '🏢✖️', 'Business Permit Renewal Processing': '🔄📄', 'Certificate of Gross Sales': '💵📄', 'Amendment of Articles of Incorporation': '✏️📜', 'Annualized Payroll Preparation': '📆👥', '2316 Preparation': '🧾👤', 'Preparation of Interim Financial Statements': '📈📄', 'Preparation of In-House Financial Statements': '🏠📄', 'Other Engagement': '❓' };
+    console.log('Script starting...');
+    
+    const categoryIcons = { 
+      'Bookkeeping': '📚', 
+      'Tax Filing (Current)': '📅', 
+      'Preparation of AFS & filing of ITR': '📊', 
+      'General Information Sheet Preparation': '📋', 
+      'BIR LOA Processing': '✉️🔍', 
+      'Open Case Processing - Tax Returns': '📂🔓', 
+      'Business Registration Processing': '🏢➕', 
+      'Business Closure Processing': '🏢✖️', 
+      'Business Permit Renewal Processing': '🔄📄', 
+      'Certificate of Gross Sales': '💵📄', 
+      'Amendment of Articles of Incorporation': '✏️📜', 
+      'Annualized Payroll Preparation': '📆👥', 
+      '2316 Preparation': '🧾👤', 
+      'Preparation of Interim Financial Statements': '📈📄', 
+      'Preparation of In-House Financial Statements': '🏠📄', 
+      'Other Engagement': '❓' 
+    };
+    
     let allCards = [];
     let currentUser = null;
     let debugMode = false;
 
-    // Enhanced error handling function
+    // Simple error display function
     function showError(title, message, details = null) {
+      console.error('Error:', title, message, details);
       const modal = document.getElementById('errorModal');
       const titleEl = document.getElementById('errorTitle');
       const messageEl = document.getElementById('errorMessage');
@@ -143,46 +164,6 @@
       }
     }
 
-    // Enhanced fetch wrapper with better error handling
-    async function makeAuthenticatedRequest(url, options = {}) {
-      console.log(`Making request to: ${url}`);
-      console.log('Request options:', options);
-      
-      const defaultOptions = {
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          ...options.headers
-        }
-      };
-      
-      const finalOptions = { ...defaultOptions, ...options };
-      
-      try {
-        const response = await fetch(url, finalOptions);
-        console.log(`Response status: ${response.status}`);
-        
-        if (!response.ok) {
-          let errorData;
-          try {
-            errorData = await response.json();
-          } catch (e) {
-            errorData = { error: `HTTP ${response.status}` };
-          }
-          
-          console.error('Request failed:', errorData);
-          throw new Error(errorData.error || `Request failed with status ${response.status}`);
-        }
-        
-        const data = response.status === 204 ? null : await response.json();
-        console.log('Response data:', data);
-        return data;
-      } catch (error) {
-        console.error('Request error:', error);
-        throw error;
-      }
-    }
-
     function getDueDateColor(dueDate) { 
       if (!dueDate) return ''; 
       const today = new Date(); 
@@ -226,7 +207,13 @@
     async function fetchAndRenderCards() {
         try {
             console.log('Fetching kanban cards...');
-            const cards = await makeAuthenticatedRequest('/api/kanban');
+            const response = await fetch('/api/kanban', { credentials: 'include' });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const cards = await response.json();
             
             document.getElementById('board-container').classList.remove('hidden');
             document.getElementById('login-prompt').classList.add('hidden');
@@ -255,7 +242,13 @@
         
         try {
             console.log('Checking user status...');
-            currentUser = await makeAuthenticatedRequest('/users/me');
+            const response = await fetch('/users/me', { credentials: 'include' });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            
+            currentUser = await response.json();
             console.log('Current user:', currentUser);
 
             loginBtn.style.display = 'none';
@@ -281,7 +274,7 @@
 
             logoutBtn.addEventListener('click', async () => {
                 try {
-                    await makeAuthenticatedRequest('/admin/logout', { method: 'POST' });
+                    await fetch('/admin/logout', { method: 'POST', credentials: 'include' });
                     window.location.reload();
                 } catch (error) {
                     console.error('Logout failed:', error);
@@ -299,9 +292,12 @@
         }
     }
 
+    // Modal functions
     const modal = document.getElementById('cardModal');
     const form = document.getElementById('cardForm');
     const categorySelect = document.getElementById('category');
+    
+    // Populate category dropdown
     Object.keys(categoryIcons).forEach(cat => { 
       const opt = document.createElement('option'); 
       opt.value = cat; 
@@ -310,42 +306,53 @@
     });
 
     function openModal(cardId) {
+      console.log('Opening modal for card ID:', cardId);
       form.reset();
       const deleteBtn = document.getElementById('deleteCardBtn');
+      
       if (cardId) {
         const card = allCards.find(c => c.id == cardId);
+        console.log('Editing card:', card);
         document.getElementById('modalTitle').textContent = 'Edit Card';
-        form.id.value = card.id;
-        form.client.value = card.client;
-        form.owner.value = card.owner;
-        form.task.value = card.task;
-        form.due_date.value = card.due_date ? card.due_date.split('T')[0] : '';
-        form.category.value = card.category;
-        form.blocker_flag.checked = card.blocker_flag;
+        document.getElementById('cardId').value = card.id;
+        document.getElementById('client').value = card.client;
+        document.getElementById('owner').value = card.owner || '';
+        document.getElementById('task').value = card.task;
+        document.getElementById('due_date').value = card.due_date ? card.due_date.split('T')[0] : '';
+        document.getElementById('category').value = card.category || '';
+        document.getElementById('blocker_flag').checked = card.blocker_flag || false;
+        
         if (currentUser && currentUser.role === 'admin') {
             deleteBtn.classList.remove('hidden');
         } else {
             deleteBtn.classList.add('hidden');
         }
       } else {
+        console.log('Creating new card');
         document.getElementById('modalTitle').textContent = 'Add New Card';
+        document.getElementById('cardId').value = '';
         deleteBtn.classList.add('hidden');
       }
       modal.classList.add('is-open');
     }
     
     function closeModal() { 
+      console.log('Closing modal');
       modal.classList.remove('is-open'); 
     }
 
+    // Initialize everything when DOM loads
     document.addEventListener('DOMContentLoaded', () => {
-        console.log('DOM Content Loaded');
+        console.log('DOM Content Loaded - Initializing...');
         
         updateUserStatus();
         fetchAndRenderCards();
         
+        // Search functionality
         document.getElementById('searchBar').addEventListener('input', applySearchAndRender);
-        setInterval(fetchAndRenderCards, 30000); // Increased interval
+        
+        // Refresh every 30 seconds
+        setInterval(fetchAndRenderCards, 30000);
 
         // Debug button
         document.getElementById('debugBtn').addEventListener('click', () => {
@@ -359,54 +366,100 @@
           }
         });
 
-        document.getElementById('addCardBtn').addEventListener('click', () => openModal());
+        // Modal buttons
+        document.getElementById('addCardBtn').addEventListener('click', () => {
+          console.log('Add card button clicked');
+          openModal();
+        });
+        
         document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+        
         document.getElementById('errorClose').addEventListener('click', () => {
           document.getElementById('errorModal').classList.remove('is-open');
         });
 
-        document.getElementById('cardForm').addEventListener('submit', async e => {
+        // FIXED: Form submission
+        document.getElementById('cardForm').addEventListener('submit', async (e) => {
           e.preventDefault();
-          const cardId = form.id.value;
+          console.log('Form submitted!');
+          
+          const formData = new FormData(form);
+          const cardId = formData.get('id');
+          
           const cardData = {
-            client: form.client.value, 
-            task: form.task.value, 
-            owner: form.owner.value,
-            due_date: form.due_date.value || null, 
-            category: form.category.value,
-            blocker_flag: form.blocker_flag.checked,
-            status: cardId ? allCards.find(c=>c.id==cardId).status : 'To Do'
+            client: formData.get('client'),
+            task: formData.get('task'),
+            owner: formData.get('owner') || null,
+            due_date: formData.get('due_date') || null,
+            category: formData.get('category') || null,
+            blocker_flag: formData.get('blocker_flag') === 'on',
+            status: cardId ? allCards.find(c => c.id == cardId)?.status || 'To Do' : 'To Do'
           };
+          
+          console.log('Card data to save:', cardData);
           
           try {
             const url = cardId ? `/api/kanban/${cardId}` : '/api/kanban';
             const method = cardId ? 'PUT' : 'POST';
             
-            await makeAuthenticatedRequest(url, { 
-              method, 
-              body: JSON.stringify(cardData) 
+            console.log(`Making ${method} request to ${url}`);
+            
+            const response = await fetch(url, {
+              method: method,
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              credentials: 'include',
+              body: JSON.stringify(cardData)
             });
             
-            closeModal(); 
-            fetchAndRenderCards();
+            console.log('Response status:', response.status);
+            
+            if (!response.ok) {
+              const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+              throw new Error(errorData.error || `HTTP ${response.status}`);
+            }
+            
+            const result = await response.json();
+            console.log('Card saved successfully:', result);
+            
+            closeModal();
+            await fetchAndRenderCards();
+            
           } catch (error) {
+            console.error('Save failed:', error);
             showError('Save Failed', error.message, { cardData, url, method });
           }
         });
 
+        // Delete button
         document.getElementById('deleteCardBtn').addEventListener('click', async () => {
-            const cardId = form.id.value;
+            const cardId = document.getElementById('cardId').value;
+            console.log('Delete button clicked for card:', cardId);
+            
             if (cardId && confirm('Are you sure you want to delete this card?')) {
                 try {
-                    await makeAuthenticatedRequest(`/api/kanban/${cardId}`, { method: 'DELETE' });
+                    const response = await fetch(`/api/kanban/${cardId}`, { 
+                      method: 'DELETE',
+                      credentials: 'include'
+                    });
+                    
+                    if (!response.ok) {
+                      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                      throw new Error(errorData.error || `HTTP ${response.status}`);
+                    }
+                    
+                    console.log('Card deleted successfully');
                     closeModal(); 
-                    fetchAndRenderCards();
+                    await fetchAndRenderCards();
                 } catch (error) {
+                    console.error('Delete failed:', error);
                     showError('Delete Failed', error.message);
                 }
             }
         });
 
+        // Drag and drop
         const columns = document.querySelectorAll('.kanban-column');
         columns.forEach(col => {
             new Sortable(col, {
@@ -418,23 +471,37 @@
                     const newStatus = evt.to.dataset.status;
                     const card = allCards.find(c => c.id == cardId);
                     
+                    console.log(`Moving card ${cardId} to ${newStatus}`);
+                    
                     if (card.status === newStatus) return;
 
                     try {
-                        await makeAuthenticatedRequest(`/api/kanban/${cardId}/status`, {
+                        const response = await fetch(`/api/kanban/${cardId}/status`, {
                             method: 'PATCH',
+                            headers: {
+                              'Content-Type': 'application/json'
+                            },
+                            credentials: 'include',
                             body: JSON.stringify({ status: newStatus })
                         });
                         
-                        fetchAndRenderCards();
+                        if (!response.ok) {
+                          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                          throw new Error(errorData.error || `HTTP ${response.status}`);
+                        }
+                        
+                        console.log('Status updated successfully');
+                        await fetchAndRenderCards();
                     } catch (error) {
                         console.error('Status update failed:', error);
                         showError('Status Update Failed', error.message);
-                        fetchAndRenderCards(); // Revert on error
+                        await fetchAndRenderCards(); // Revert on error
                     }
                 }
             });
         });
+        
+        console.log('Initialization complete!');
     });
   </script>
 </body>
