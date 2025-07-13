@@ -20,8 +20,11 @@
 <body class="bg-gray-100 font-sans">
   <header class="bg-white shadow sticky top-0 z-50">
     <div class="container mx-auto px-4 py-3 flex items-center justify-between gap-4">
-      <a href="/"><img src="/assets/new-AGPT-logo.svg" alt="AGPT Logo" class="w-12 flex-shrink-0"></a>
-      <div class="flex-grow min-w-0"><input type="search" id="searchBar" placeholder="Search by client, task, or owner..." class="w-full border px-3 py-2 rounded-lg focus:ring focus:ring-blue-200"></div>
+      <a href="/" class="flex items-center gap-3 flex-shrink-0">
+        <img src="/assets/new-AGPT-logo.svg" alt="AGPT Logo" class="w-12 h-12">
+        <span class="font-bold text-gray-700 hidden sm:inline">AGPT Accounting and Business Consultancy</span>
+      </a>
+      <div class="flex-grow min-w-0 mx-4"><input type="search" id="searchBar" placeholder="Search by client, task, or owner..." class="w-full border px-3 py-2 rounded-lg focus:ring focus:ring-blue-200"></div>
       <div id="user-status" class="flex items-center gap-4 flex-shrink-0">
          <button id="addCardBtn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 hidden">Add Card</button>
          <a id="loginBtn" href="/admin/login.html" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Login</a>

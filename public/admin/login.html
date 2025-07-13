@@ -3,14 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin - Manage Insights</title>
+  <title>Team Login - AGPT</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="font-sans antialiased bg-gray-100">
-  <div class="min-h-screen flex items-center justify-center">
+  <div id="page-container" class="min-h-screen flex flex-col items-center justify-center p-4">
+    <div class="flex items-center mb-6">
+      <img src="/assets/new-AGPT-logo.svg" alt="AGPT Logo" class="w-12 h-12 mr-4">
+      <h1 class="text-xl font-bold text-gray-700">AGPT Accounting and Business Consultancy</h1>
+    </div>
+
     <!-- Login Section -->
     <div id="loginSection" class="max-w-md w-full bg-white p-6 rounded shadow-md">
-      <h2 class="text-2xl font-bold mb-4">Admin Login</h2>
+      <h2 class="text-2xl font-bold mb-4 text-center">Team Login</h2>
       <form id="loginForm" class="space-y-4">
         <div>
           <label for="username" class="block mb-1 text-gray-700">Username</label>
@@ -21,66 +26,71 @@
           <input id="password" name="password" type="password" class="w-full border px-3 py-2 rounded focus:ring focus:ring-blue-200" required />
         </div>
         <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Login</button>
+        <p class="text-center text-sm pt-2">Don't have an account? <a href="/admin/register.html" class="text-blue-600 hover:underline">Register here</a>.</p>
       </form>
     </div>
 
-    <!-- Post Management Section -->
-    <div id="postSection" class="hidden w-full max-w-3xl mx-4">
+    <!-- Post Management Section (For Admins) -->
+    <div id="postSection" class="hidden w-full max-w-4xl mx-4">
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-2xl font-bold">Manage Insights</h2>
         <div>
           <a href="/admin/users.html" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mr-4">Manage Users</a>
-          <button id="logoutBtn" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Logout</button>
+          <button id="logoutBtnAdmin" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Logout</button>
         </div>
       </div>
-      <div id="postList" class="space-y-4">
-        <!-- Posts will be rendered here -->
-      </div>
+      <div id="postList" class="space-y-4"></div>
       <hr class="my-6" />
       <h3 class="text-xl font-semibold mb-2">Create / Edit Insight</h3>
       <form id="postForm" class="space-y-4 bg-white p-6 rounded shadow-md">
-        <input type="hidden" name="_id" />
-        <div>
-          <label for="title" class="block mb-1 text-gray-700">Title</label>
-          <input id="title" name="title" type="text" class="w-full border px-3 py-2 rounded focus:ring focus:ring-blue-200" required />
-        </div>
-        <div>
-          <label for="excerpt" class="block mb-1 text-gray-700">Excerpt</label>
-          <textarea id="excerpt" name="excerpt" rows="3" class="w-full border px-3 py-2 rounded focus:ring focus:ring-blue-200" required></textarea>
-        </div>
-        <div>
-          <label for="slug" class="block mb-1 text-gray-700">Slug</label>
-          <input id="slug" name="slug" type="text" class="w-full border px-3 py-2 rounded focus:ring focus:ring-blue-200" required />
-        </div>
-        <div class="flex space-x-2">
-          <button type="submit" class="bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700">Save</button>
-          <button type="button" id="cancelEditBtn" class="bg-gray-400 text-white py-2 px-4 rounded hover:bg-gray-500">Cancel</button>
-        </div>
+        <input type="hidden" id="editPostId" name="_id" />
+        <div><label for="title" class="block mb-1 text-gray-700">Title</label><input id="title" name="title" type="text" class="w-full border px-3 py-2 rounded focus:ring focus:ring-blue-200" required /></div>
+        <div><label for="excerpt" class="block mb-1 text-gray-700">Excerpt</label><textarea id="excerpt" name="excerpt" rows="3" class="w-full border px-3 py-2 rounded focus:ring focus:ring-blue-200" required></textarea></div>
+        <div><label for="slug" class="block mb-1 text-gray-700">Slug</label><input id="slug" name="slug" type="text" class="w-full border px-3 py-2 rounded focus:ring focus:ring-blue-200" required /></div>
+        <div class="flex space-x-2"><button type="submit" class="bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700">Save</button><button type="button" id="cancelEditBtn" class="bg-gray-400 text-white py-2 px-4 rounded hover:bg-gray-500">Cancel</button></div>
       </form>
     </div>
   </div>
 
   <script>
-    document.getElementById('loginForm').addEventListener('submit', async e => {
-      e.preventDefault();
-      const { username, password } = e.target;
-      const res = await fetch('/admin/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ username: username.value, password: password.value })
-      });
-      if (res.ok) {
-        document.getElementById('loginSection').classList.add('hidden');
-        document.getElementById('postSection').classList.remove('hidden');
-        loadAndRender();
-      } else alert('Login failed');
-    });
+    let allPosts = [];
 
-    document.getElementById('logoutBtn').addEventListener('click', async () => {
+    async function handleUserSession() {
+      const loginSection = document.getElementById('loginSection');
+      const postSection = document.getElementById('postSection');
+      try {
+        const res = await fetch('/users/me', { credentials: 'include' });
+        if (!res.ok) throw new Error('Not authenticated');
+        const user = await res.json();
+
+        loginSection.classList.add('hidden');
+        if (user.role === 'admin') {
+          postSection.classList.remove('hidden');
+          loadAndRenderPosts();
+        } else {
+          document.getElementById('page-container').innerHTML = `
+            <div class="max-w-md w-full bg-white p-6 rounded shadow-md text-center">
+              <div class="flex items-center justify-center mb-6">
+                <img src="/assets/new-AGPT-logo.svg" alt="AGPT Logo" class="w-12 h-12 mr-4">
+                <h1 class="text-xl font-bold text-gray-700">AGPT Accounting and Business Consultancy</h1>
+              </div>
+              <h2 class="text-2xl font-bold mb-4">Welcome, ${user.username}!</h2>
+              <p>Your role is 'Employee'. You can access the Kanban board.</p>
+              <a href="/admin/kanban.html" class="mt-4 inline-block w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Go to Kanban Board</a>
+              <button id="logoutBtnEmployee" class="mt-2 w-full bg-gray-500 text-white py-2 rounded hover:bg-gray-600">Logout</button>
+            </div>`;
+          document.getElementById('logoutBtnEmployee').addEventListener('click', logout);
+        }
+      } catch (e) {
+        loginSection.classList.remove('hidden');
+        postSection.classList.add('hidden');
+      }
+    }
+
+    async function logout() {
       await fetch('/admin/logout', { method: 'POST', credentials: 'include' });
       window.location.reload();
-    });
+    }
 
     async function fetchPosts() {
       const res = await fetch('/api/posts');
@@ -88,7 +98,7 @@
     }
 
     function renderPosts(posts) {
-      window.allPosts = posts;
+      allPosts = posts;
       const list = document.getElementById('postList');
       list.innerHTML = '';
       posts.forEach(p => {
@@ -110,56 +120,74 @@
       document.querySelectorAll('.deleteBtn').forEach(btn => btn.onclick = () => deletePost(btn.dataset.id));
     }
 
-    async function loadAndRender() {
+    async function loadAndRenderPosts() {
       const posts = await fetchPosts();
       renderPosts(posts);
     }
 
     async function deletePost(id) {
       if (!confirm('Delete this insight?')) return;
-      const res = await fetch(`/api/posts/${id}`, {
-        method: 'DELETE',
-        credentials: 'include'
-      });
-      if (res.ok) loadAndRender();
+      const res = await fetch(`/api/posts/${id}`, { method: 'DELETE', credentials: 'include' });
+      if (res.ok) loadAndRenderPosts();
       else alert('Delete failed');
     }
 
     function startEdit(id) {
-      const post = window.allPosts.find(p => p.id == id);
+      const post = allPosts.find(p => p.id == id);
       const form = document.getElementById('postForm');
-      form._id.value = post.id;
+      form.editPostId.value = post.id;
       form.title.value = post.title;
       form.excerpt.value = post.excerpt;
       form.slug.value = post.slug;
     }
 
-    document.getElementById('postForm').addEventListener('submit', async e => {
-      e.preventDefault();
-      const form = e.target;
-      const id = form._id.value;
-      const payload = {
-        title: form.title.value,
-        excerpt: form.excerpt.value,
-        slug: form.slug.value
-      };
-      const method = id ? 'PUT' : 'POST';
-      const url = id ? `/api/posts/${id}` : '/api/posts';
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(payload)
-      });
-      if (res.ok) {
-        form.reset();
-        form._id.value = '';
-        loadAndRender();
-      } else alert('Save failed');
-    });
+    document.addEventListener('DOMContentLoaded', () => {
+      handleUserSession();
 
-    document.getElementById('cancelEditBtn').addEventListener('click', () => {
-      document.getElementById('postForm').reset();
+      document.getElementById('loginForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const { username, password } = e.target;
+        const res = await fetch('/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ username: username.value, password: password.value })
+        });
+        if (res.ok) {
+          handleUserSession();
+        } else {
+          alert('Login failed. Please check your username and password.');
+        }
+      });
+
+      const logoutBtnAdmin = document.getElementById('logoutBtnAdmin');
+      if (logoutBtnAdmin) logoutBtnAdmin.addEventListener('click', logout);
+
+      const postForm = document.getElementById('postForm');
+      if (postForm) {
+        postForm.addEventListener('submit', async e => {
+          e.preventDefault();
+          const form = e.target;
+          const id = form.editPostId.value;
+          const payload = { title: form.title.value, excerpt: form.excerpt.value, slug: form.slug.value };
+          const method = id ? 'PUT' : 'POST';
+          const url = id ? `/api/posts/${id}` : '/api/posts';
+          const res = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(payload)
+          });
+          if (res.ok) {
+            form.reset();
+            form.editPostId.value = '';
+            loadAndRenderPosts();
+          } else alert('Save failed');
+        });
+      }
+
+      const cancelEditBtn = document.getElementById('cancelEditBtn');
+      if(cancelEditBtn) cancelEditBtn.addEventListener('click', () => { document.getElementById('postForm').reset(); });
     });
   </script>
 </body>
