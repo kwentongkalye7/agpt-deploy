@@ -170,37 +170,40 @@
       modal.classList.add('is-open');
     }
     function closeModal() { modal.classList.remove('is-open'); }
-    document.getElementById('addCardBtn').addEventListener('click', () => openModal());
-    document.getElementById('closeModalBtn').addEventListener('click', closeModal);
-
-    form.addEventListener('submit', async e => {
-      e.preventDefault();
-      const cardId = form.id.value;
-      const cardData = {
-        client: form.client.value, task: form.task.value, owner: form.owner.value,
-        due_date: form.due_date.value || null, category: form.category.value,
-        blocker_flag: form.blocker_flag.checked,
-        status: cardId ? allCards.find(c=>c.id==cardId).status : 'To Do'
-      };
-      const url = cardId ? `/api/kanban/${cardId}` : '/api/kanban';
-      const method = cardId ? 'PUT' : 'POST';
-      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(cardData) });
-      if(res.ok) { closeModal(); fetchAndRenderCards(); } else { alert('Save failed. You may need to log in.'); }
-    });
-
-    document.getElementById('deleteCardBtn').addEventListener('click', async () => {
-        const cardId = form.id.value;
-        if (cardId && confirm('Are you sure you want to delete this card?')) {
-            const res = await fetch(`/api/kanban/${cardId}`, { method: 'DELETE', credentials: 'include' });
-            if (res.ok) { closeModal(); fetchAndRenderCards(); } else { alert('Delete failed. Only admins can delete cards.'); }
-        }
-    });
 
     document.addEventListener('DOMContentLoaded', () => {
+        // Setup main event listeners
         updateUserStatus();
         fetchAndRenderCards();
         document.getElementById('searchBar').addEventListener('input', applySearchAndRender);
         setInterval(fetchAndRenderCards, 15000);
+
+        // Setup modal listeners
+        document.getElementById('addCardBtn').addEventListener('click', () => openModal());
+        document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+        document.getElementById('cardForm').addEventListener('submit', async e => {
+          e.preventDefault();
+          const cardId = form.id.value;
+          const cardData = {
+            client: form.client.value, task: form.task.value, owner: form.owner.value,
+            due_date: form.due_date.value || null, category: form.category.value,
+            blocker_flag: form.blocker_flag.checked,
+            status: cardId ? allCards.find(c=>c.id==cardId).status : 'To Do'
+          };
+          const url = cardId ? `/api/kanban/${cardId}` : '/api/kanban';
+          const method = cardId ? 'PUT' : 'POST';
+          const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(cardData) });
+          if(res.ok) { closeModal(); fetchAndRenderCards(); } else { alert('Save failed. You may need to log in.'); }
+        });
+        document.getElementById('deleteCardBtn').addEventListener('click', async () => {
+            const cardId = form.id.value;
+            if (cardId && confirm('Are you sure you want to delete this card?')) {
+                const res = await fetch(`/api/kanban/${cardId}`, { method: 'DELETE', credentials: 'include' });
+                if (res.ok) { closeModal(); fetchAndRenderCards(); } else { alert('Delete failed. Only admins can delete cards.'); }
+            }
+        });
+
+        // Setup drag-and-drop
         const columns = document.querySelectorAll('.kanban-column');
         columns.forEach(col => {
             new Sortable(col, {
