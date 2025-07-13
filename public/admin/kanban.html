@@ -127,13 +127,25 @@
             const res = await fetch('/users/me', { credentials: 'include' });
             if (!res.ok) throw new Error('Not logged in');
             currentUser = await res.json();
+
             loginBtn.classList.add('hidden');
             addCardBtn.classList.remove('hidden');
-            userStatusDiv.innerHTML += `<span class="text-gray-600">Welcome, ${currentUser.username}!</span><button id="logoutBtn" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Logout</button>`;
-            document.getElementById('logoutBtn').addEventListener('click', async () => {
+
+            const welcomeSpan = document.createElement('span');
+            welcomeSpan.className = 'text-gray-600';
+            welcomeSpan.textContent = `Welcome, ${currentUser.username}!`;
+
+            const logoutBtn = document.createElement('button');
+            logoutBtn.id = 'logoutBtn';
+            logoutBtn.className = 'bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700';
+            logoutBtn.textContent = 'Logout';
+            logoutBtn.addEventListener('click', async () => {
                 await fetch('/admin/logout', { method: 'POST', credentials: 'include' });
                 window.location.reload();
             });
+
+            userStatusDiv.appendChild(welcomeSpan);
+            userStatusDiv.appendChild(logoutBtn);
         } catch (e) {
             currentUser = null;
             addCardBtn.classList.add('hidden');
@@ -172,13 +184,11 @@
     function closeModal() { modal.classList.remove('is-open'); }
 
     document.addEventListener('DOMContentLoaded', () => {
-        // Setup main event listeners
         updateUserStatus();
         fetchAndRenderCards();
         document.getElementById('searchBar').addEventListener('input', applySearchAndRender);
         setInterval(fetchAndRenderCards, 15000);
 
-        // Setup modal listeners
         document.getElementById('addCardBtn').addEventListener('click', () => openModal());
         document.getElementById('closeModalBtn').addEventListener('click', closeModal);
         document.getElementById('cardForm').addEventListener('submit', async e => {
@@ -203,7 +213,6 @@
             }
         });
 
-        // Setup drag-and-drop
         const columns = document.querySelectorAll('.kanban-column');
         columns.forEach(col => {
             new Sortable(col, {
@@ -216,7 +225,7 @@
                     card.status = newStatus;
                     const res = await fetch(`/api/kanban/${cardId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(card) });
                     if (!res.ok) { alert('Failed to update status. You may need to log in.'); }
-                    fetchAndRenderCards(); // Refresh board to show timestamp change
+                    fetchAndRenderCards();
                 }
             });
         });
