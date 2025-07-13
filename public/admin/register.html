@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Employee Registration</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="font-sans antialiased bg-gray-100">
+  <div class="min-h-screen flex items-center justify-center">
+    <div class="max-w-md w-full bg-white p-6 rounded shadow-md">
+      <h2 class="text-2xl font-bold mb-4">Create Your Employee Account</h2>
+      <form id="registerForm" class="space-y-4">
+        <div>
+          <label for="username" class="block mb-1 text-gray-700">Username</label>
+          <input id="username" name="username" type="text" class="w-full border px-3 py-2 rounded focus:ring focus:ring-blue-200" required />
+        </div>
+        <div>
+          <label for="password" class="block mb-1 text-gray-700">Password</label>
+          <input id="password" name="password" type="password" class="w-full border px-3 py-2 rounded focus:ring focus:ring-blue-200" required />
+        </div>
+        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Register</button>
+      </form>
+      <div id="message" class="mt-4 text-center"></div>
+       <p class="text-center mt-4 text-sm">Already have an account? <a href="/admin/login.html" class="text-blue-600 hover:underline">Login here</a>.</p>
+    </div>
+  </div>
+  <script>
+    document.getElementById('registerForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const { username, password } = e.target;
+      const messageDiv = document.getElementById('message');
+      messageDiv.textContent = '';
+
+      const res = await fetch('/users/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: username.value, password: password.value })
+      });
+
+      if (res.ok) {
+        messageDiv.textContent = 'Registration successful! You can now log in.';
+        messageDiv.className = 'text-green-600';
+        e.target.reset();
+      } else {
+        const errorText = await res.text();
+        messageDiv.textContent = `Error: ${errorText}`;
+        messageDiv.className = 'text-red-600';
+      }
+    });
+  </script>
+</body>
+</html>

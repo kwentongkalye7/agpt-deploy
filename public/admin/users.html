@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin - User Management</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+  <div class="container mx-auto p-4 md:p-8">
+    <div id="admin-content" class="hidden">
+      <h1 class="text-3xl font-bold mb-6">User Management</h1>
+      <div class="bg-white p-6 rounded-lg shadow">
+        <div id="userList" class="space-y-3"></div>
+      </div>
+
+      <h2 class="text-2xl font-bold mt-8 mb-4">Board Actions</h2>
+      <div class="bg-white p-6 rounded-lg shadow">
+        <p class="mb-2 text-gray-600">Permanently delete all cards from the "Done" column.</p>
+        <button id="clearDoneBtn" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Clear All 'Done' Cards</button>
+      </div>
+    </div>
+    <div id="auth-message" class="text-center p-8 bg-white rounded-lg shadow"></div>
+    <div class="mt-6 text-center"><a href="/admin/login.html" class="text-blue-600 hover:underline">&larr; Back to Admin Login</a></div>
+  </div>
+  <script>
+    async function checkAdminStatusAndLoad() {
+      const adminContent = document.getElementById('admin-content');
+      const authMessage = document.getElementById('auth-message');
+      try {
+        const res = await fetch('/users/me', { credentials: 'include' });
+        if (!res.ok) throw new Error('Not logged in');
+        const user = await res.json();
+        if (user.role !== 'admin') throw new Error('Access denied. Admin role required.');
+
+        authMessage.classList.add('hidden');
+        adminContent.classList.remove('hidden');
+        loadUsers(user.id);
+      } catch (e) {
+        authMessage.innerHTML = `<h2 class="text-xl font-semibold text-red-600">${e.message}</h2><p class="mt-2">Please log in as an administrator to access this page.</p>`;
+      }
+    }
+
+    async function loadUsers(currentAdminId) {
+      const res = await fetch('/api/users', { credentials: 'include' });
+      const users = await res.json();
+      const listDiv = document.getElementById('userList');
+      listDiv.innerHTML = '';
+      users.forEach(user => {
+        const userEl = document.createElement('div');
+        userEl.className = 'flex justify-between items-center p-3 border rounded';
+        userEl.innerHTML = `
+          <div>
+            <span class="font-semibold">${user.username}</span>
+            <span class="text-sm text-gray-500 ml-2">(${user.role})</span>
+          </div>
+          ${user.id !== currentAdminId ? `<button data-id="${user.id}" class="delete-btn bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Delete</button>` : ''}
+        `;
+        listDiv.appendChild(userEl);
+      });
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', () => deleteUser(btn.dataset.id));
+      });
+    }
+
+    async function deleteUser(userId) {
+      if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
+      const res = await fetch(`/api/users/${userId}`, { method: 'DELETE', credentials: 'include' });
+      if (res.ok) {
+        checkAdminStatusAndLoad();
+      } else {
+        alert(`Error: ${await res.text()}`);
+      }
+    }
+
+    async function clearDoneCards() {
+        if (!confirm("Are you sure you want to permanently delete all 'Done' cards? This cannot be undone.")) return;
+        const res = await fetch('/api/kanban/completed', { method: 'DELETE', credentials: 'include' });
+        if (res.ok) {
+            alert("'Done' cards cleared successfully.");
+        } else {
+            alert(`Error: ${await res.text()}`);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        await checkAdminStatusAndLoad();
+        const clearBtn = document.getElementById('clearDoneBtn');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', clearDoneCards);
+        }
+    });
+  </script>
+</body>
+</html>
