@@ -225,10 +225,12 @@
             logoutBtn.addEventListener('click', async () => {
                 try {
                     await fetch('/admin/logout', { method: 'POST', credentials: 'include' });
-                    window.location.reload();
+                    // Redirect instead of reload to avoid authentication checks
+                    window.location.href = '/admin/login.html';
                 } catch (error) {
                     console.error('Logout failed:', error);
-                    showError('Logout Error', error.message);
+                    // Still redirect even if logout request fails
+                    window.location.href = '/admin/login.html';
                 }
             });
 
