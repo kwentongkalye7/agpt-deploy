@@ -601,6 +601,79 @@ app.patch('/api/kanban/:id/status', requireLogin, async (req, res) => {
     }
 });
 
+// FIXED: Clear Completed Cards Endpoint - MOVED BEFORE the /:id route
+app.delete('/api/kanban/completed', requireAdmin, async (req, res) => {
+    console.log('\n=== DELETE /api/kanban/completed ===');
+    console.log('Admin clearing completed cards:', req.session.user);
+    
+    try {
+        // First, let's see what cards we're trying to delete
+        const doneCards = await pool.query("SELECT id, client, task FROM kanban_cards WHERE status = 'Done'");
+        console.log(`Found ${doneCards.rows.length} cards in Done status:`, doneCards.rows);
+        
+        if (doneCards.rows.length === 0) {
+            console.log('ℹ️ No cards in Done status to delete');
+            return res.status(200).json({ 
+                success: true, 
+                deletedCount: 0,
+                message: 'No completed cards to delete'
+            });
+        }
+        
+        // Try to delete each card individually to identify any problem cards
+        let deletedCount = 0;
+        let failedCards = [];
+        
+        for (const card of doneCards.rows) {
+            try {
+                const deleteResult = await pool.query("DELETE FROM kanban_cards WHERE id = $1 AND status = 'Done' RETURNING id", [card.id]);
+                if (deleteResult.rows.length > 0) {
+                    deletedCount++;
+                    console.log(`✅ Deleted card ${card.id}: ${card.client} - ${card.task}`);
+                } else {
+                    console.log(`⚠️ Card ${card.id} was not deleted (may have changed status)`);
+                }
+            } catch (err) {
+                console.error(`❌ Failed to delete card ${card.id}:`, err.message);
+                failedCards.push({ id: card.id, client: card.client, error: err.message });
+            }
+        }
+        
+        if (failedCards.length > 0) {
+            console.log('Some cards failed to delete:', failedCards);
+            return res.status(207).json({ // 207 = Multi-Status
+                success: true,
+                deletedCount: deletedCount,
+                failedCount: failedCards.length,
+                failedCards: failedCards,
+                message: `Deleted ${deletedCount} cards, ${failedCards.length} failed`
+            });
+        }
+        
+        console.log(`✅ Successfully deleted all ${deletedCount} completed cards`);
+        res.status(200).json({ 
+            success: true, 
+            deletedCount: deletedCount,
+            message: `Successfully deleted ${deletedCount} completed cards`
+        });
+        
+    } catch (err) {
+        console.error('❌ Error in clear completed cards:', err);
+        console.error('Error details:', {
+            message: err.message,
+            code: err.code,
+            detail: err.detail,
+            stack: err.stack
+        });
+        res.status(500).json({ 
+            error: 'Failed to clear completed cards', 
+            details: err.message,
+            code: err.code 
+        });
+    }
+});
+
+// Individual card deletion - MOVED AFTER the /completed route
 app.delete('/api/kanban/:id', requireAdmin, async (req, res) => {
   console.log('\n=== DELETE /api/kanban/:id ===');
   console.log('Admin deleting individual card:', req.session.user);
@@ -677,78 +750,6 @@ app.delete('/api/users/:id', requireAdmin, async (req, res) => {
     } catch (err) {
         console.error('❌ Error deleting user:', err);
         res.status(500).json({ error: 'Failed to delete user' });
-    }
-});
-
-// ENHANCED Clear Completed Cards Endpoint
-app.delete('/api/kanban/completed', requireAdmin, async (req, res) => {
-    console.log('\n=== DELETE /api/kanban/completed ===');
-    console.log('Admin clearing completed cards:', req.session.user);
-    
-    try {
-        // First, let's see what cards we're trying to delete
-        const doneCards = await pool.query("SELECT id, client, task FROM kanban_cards WHERE status = 'Done'");
-        console.log(`Found ${doneCards.rows.length} cards in Done status:`, doneCards.rows);
-        
-        if (doneCards.rows.length === 0) {
-            console.log('ℹ️ No cards in Done status to delete');
-            return res.status(200).json({ 
-                success: true, 
-                deletedCount: 0,
-                message: 'No completed cards to delete'
-            });
-        }
-        
-        // Try to delete each card individually to identify any problem cards
-        let deletedCount = 0;
-        let failedCards = [];
-        
-        for (const card of doneCards.rows) {
-            try {
-                const deleteResult = await pool.query("DELETE FROM kanban_cards WHERE id = $1 AND status = 'Done' RETURNING id", [card.id]);
-                if (deleteResult.rows.length > 0) {
-                    deletedCount++;
-                    console.log(`✅ Deleted card ${card.id}: ${card.client} - ${card.task}`);
-                } else {
-                    console.log(`⚠️ Card ${card.id} was not deleted (may have changed status)`);
-                }
-            } catch (err) {
-                console.error(`❌ Failed to delete card ${card.id}:`, err.message);
-                failedCards.push({ id: card.id, client: card.client, error: err.message });
-            }
-        }
-        
-        if (failedCards.length > 0) {
-            console.log('Some cards failed to delete:', failedCards);
-            return res.status(207).json({ // 207 = Multi-Status
-                success: true,
-                deletedCount: deletedCount,
-                failedCount: failedCards.length,
-                failedCards: failedCards,
-                message: `Deleted ${deletedCount} cards, ${failedCards.length} failed`
-            });
-        }
-        
-        console.log(`✅ Successfully deleted all ${deletedCount} completed cards`);
-        res.status(200).json({ 
-            success: true, 
-            deletedCount: deletedCount,
-            message: `Successfully deleted ${deletedCount} completed cards`
-        });
-        
-    } catch (err) {
-        console.error('❌ Error in clear completed cards:', err);
-        console.error('Error details:', {
-            message: err.message,
-            code: err.code,
-            detail: err.detail,
-            stack: err.stack
-        });
-        res.status(500).json({ 
-            error: 'Failed to clear completed cards', 
-            details: err.message,
-            code: err.code 
-        });
     }
 });
 
