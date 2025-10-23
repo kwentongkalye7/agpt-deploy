@@ -759,7 +759,7 @@ app.delete('/api/users/:id', requireAdmin, async (req, res) => {
 app.post('/api/contact', async (req, res) => {
   const { name, email, message } = req.body;
   try {
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
         user: process.env.EMAIL_USER,
