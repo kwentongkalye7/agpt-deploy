@@ -1,26 +1,3 @@
-:root {
-  --agpt-blue: #0057b8;
-  --agpt-blue-dark: #00468a;
-  --agpt-blue-light: #1374d8;
-  --growth-green: #00b389;
-  --growth-green-dark: #008562;
-  --neutral-gray: #707070;
-  --header-black: #000000;
-  --brand-white: #ffffff;
-  --sky-mist: #e8f2fa;
-  --mint-haze: #e2f4ee;
-}
-
 .justify {
   text-align: justify;
-}
-
-.section-accent {
-  border-bottom: 4px solid var(--growth-green);
-  width: 4rem;
-  margin: 1rem auto 0;
-}
-
-.card-outline {
-  border: 1px solid rgba(0, 0, 0, 0.06);
 }

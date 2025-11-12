@@ -4,71 +4,50 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Team Login - AGPT</title>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            'agpt-blue': '#0057B8',
-            'agpt-blue-dark': '#00468A',
-            'agpt-blue-light': '#1374D8',
-            'growth-green': '#00B389',
-            'growth-green-dark': '#008562',
-            'neutral-gray': '#707070',
-            'header-black': '#000000',
-            'brand-white': '#FFFFFF',
-            'sky-mist': '#E8F2FA',
-            'mint-haze': '#E2F4EE'
-          }
-        }
-      }
-    }
-  </script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="/assets/css/custom.css">
 </head>
-<body class="font-sans antialiased bg-sky-mist text-neutral-gray">
-  <div id="page-container" class="min-h-screen flex flex-col items-center justify-center p-4 w-full">
+<body class="font-sans antialiased bg-gray-100">
+  <div id="page-container" class="min-h-screen flex flex-col items-center justify-center p-4">
     <div class="flex items-center mb-6">
       <img src="/assets/agpt.jpg" alt="AGPT Logo" class="w-12 h-12 mr-4">
-      <h1 class="text-xl font-bold text-header-black">AGPT Accounting and Business Consultancy</h1>
+      <h1 class="text-xl font-bold text-gray-700">AGPT Accounting and Business Consultancy</h1>
     </div>
 
     <!-- Login Section -->
-    <div id="loginSection" class="max-w-md w-full bg-brand-white p-6 rounded-2xl shadow-sm card-outline">
-      <h2 class="text-2xl font-bold mb-4 text-center text-header-black">Team Login</h2>
+    <div id="loginSection" class="max-w-md w-full bg-white p-6 rounded shadow-md">
+      <h2 class="text-2xl font-bold mb-4 text-center">Team Login</h2>
       <form id="loginForm" class="space-y-4">
         <div>
-          <label for="username" class="block mb-1 text-neutral-gray font-medium">Username</label>
-          <input id="username" name="username" type="text" class="w-full border border-[#DDE3EA] px-3 py-2 rounded focus:outline-none focus:border-agpt-blue" required />
+          <label for="username" class="block mb-1 text-gray-700">Username</label>
+          <input id="username" name="username" type="text" class="w-full border px-3 py-2 rounded focus:ring focus:ring-blue-200" required />
         </div>
         <div>
-          <label for="password" class="block mb-1 text-neutral-gray font-medium">Password</label>
-          <input id="password" name="password" type="password" class="w-full border border-[#DDE3EA] px-3 py-2 rounded focus:outline-none focus:border-agpt-blue" required />
+          <label for="password" class="block mb-1 text-gray-700">Password</label>
+          <input id="password" name="password" type="password" class="w-full border px-3 py-2 rounded focus:ring focus:ring-blue-200" required />
         </div>
-        <button type="submit" class="w-full bg-agpt-blue text-brand-white py-3 rounded-full font-semibold hover:bg-agpt-blue-dark transition">Login</button>
-        <p class="text-center text-sm pt-2">Don't have an account? <a href="/admin/register.html" class="text-agpt-blue font-semibold hover:text-growth-green transition">Register here</a>.</p>
+        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Login</button>
+        <p class="text-center text-sm pt-2">Don't have an account? <a href="/admin/register.html" class="text-blue-600 hover:underline">Register here</a>.</p>
       </form>
     </div>
 
     <!-- Post Management Section (For Admins) -->
-    <div id="postSection" class="hidden w-full max-w-5xl mx-4 bg-brand-white p-6 md:p-10 rounded-2xl shadow-sm card-outline space-y-6">
-      <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <h2 class="text-2xl font-bold text-header-black">Manage Insights</h2>
+    <div id="postSection" class="hidden w-full max-w-4xl mx-4">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-2xl font-bold">Manage Insights</h2>
         <div>
-          <a href="/admin/users.html" class="bg-agpt-blue text-brand-white px-4 py-2 rounded-full hover:bg-agpt-blue-dark mr-2 font-semibold inline-block">Manage Users</a>
-          <button id="logoutBtnAdmin" class="bg-neutral-gray text-brand-white px-4 py-2 rounded-full hover:bg-header-black font-semibold">Logout</button>
+          <a href="/admin/users.html" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mr-4">Manage Users</a>
+          <button id="logoutBtnAdmin" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Logout</button>
         </div>
       </div>
       <div id="postList" class="space-y-4"></div>
       <hr class="my-6" />
-      <h3 class="text-xl font-semibold mb-2 text-header-black">Create / Edit Insight</h3>
-      <form id="postForm" class="space-y-4 bg-brand-white p-6 rounded-xl shadow-sm card-outline">
+      <h3 class="text-xl font-semibold mb-2">Create / Edit Insight</h3>
+      <form id="postForm" class="space-y-4 bg-white p-6 rounded shadow-md">
         <input type="hidden" id="editPostId" name="_id" />
-        <div><label for="title" class="block mb-1 text-neutral-gray font-medium">Title</label><input id="title" name="title" type="text" class="w-full border border-[#DDE3EA] px-3 py-2 rounded focus:outline-none focus:border-agpt-blue" required /></div>
-        <div><label for="excerpt" class="block mb-1 text-neutral-gray font-medium">Excerpt</label><textarea id="excerpt" name="excerpt" rows="3" class="w-full border border-[#DDE3EA] px-3 py-2 rounded focus:outline-none focus:border-agpt-blue" required></textarea></div>
-        <div><label for="slug" class="block mb-1 text-neutral-gray font-medium">Slug</label><input id="slug" name="slug" type="text" class="w-full border border-[#DDE3EA] px-3 py-2 rounded focus:outline-none focus:border-agpt-blue" required /></div>
-        <div class="flex flex-wrap gap-2"><button type="submit" class="bg-growth-green text-brand-white py-2 px-4 rounded-full hover:bg-growth-green-dark font-semibold">Save</button><button type="button" id="cancelEditBtn" class="bg-neutral-gray text-brand-white py-2 px-4 rounded-full hover:bg-header-black">Cancel</button></div>
+        <div><label for="title" class="block mb-1 text-gray-700">Title</label><input id="title" name="title" type="text" class="w-full border px-3 py-2 rounded focus:ring focus:ring-blue-200" required /></div>
+        <div><label for="excerpt" class="block mb-1 text-gray-700">Excerpt</label><textarea id="excerpt" name="excerpt" rows="3" class="w-full border px-3 py-2 rounded focus:ring focus:ring-blue-200" required></textarea></div>
+        <div><label for="slug" class="block mb-1 text-gray-700">Slug</label><input id="slug" name="slug" type="text" class="w-full border px-3 py-2 rounded focus:ring focus:ring-blue-200" required /></div>
+        <div class="flex space-x-2"><button type="submit" class="bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700">Save</button><button type="button" id="cancelEditBtn" class="bg-gray-400 text-white py-2 px-4 rounded hover:bg-gray-500">Cancel</button></div>
       </form>
     </div>
   </div>
@@ -90,15 +69,15 @@
           loadAndRenderPosts();
         } else {
           document.getElementById('page-container').innerHTML = `
-            <div class="max-w-md w-full bg-brand-white p-6 rounded-2xl shadow-sm card-outline text-center">
+            <div class="max-w-md w-full bg-white p-6 rounded shadow-md text-center">
               <div class="flex items-center justify-center mb-6">
                 <img src="/assets/new-AGPT-logo.svg" alt="AGPT Logo" class="w-12 h-12 mr-4">
-                <h1 class="text-xl font-bold text-header-black">AGPT Accounting and Business Consultancy</h1>
+                <h1 class="text-xl font-bold text-gray-700">AGPT Accounting and Business Consultancy</h1>
               </div>
-              <h2 class="text-2xl font-bold mb-4 text-header-black">Welcome, ${user.username}!</h2>
+              <h2 class="text-2xl font-bold mb-4">Welcome, ${user.username}!</h2>
               <p>Your role is 'Employee'. You can access the Kanban board.</p>
-              <a href="/admin/kanban.html" class="mt-4 inline-block w-full bg-agpt-blue text-brand-white py-3 rounded-full hover:bg-agpt-blue-dark font-semibold">Go to Kanban Board</a>
-              <button id="logoutBtnEmployee" class="mt-2 w-full bg-neutral-gray text-brand-white py-3 rounded-full hover:bg-header-black font-semibold">Logout</button>
+              <a href="/admin/kanban.html" class="mt-4 inline-block w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Go to Kanban Board</a>
+              <button id="logoutBtnEmployee" class="mt-2 w-full bg-gray-500 text-white py-2 rounded hover:bg-gray-600">Logout</button>
             </div>`;
           document.getElementById('logoutBtnEmployee').addEventListener('click', logout);
         }
@@ -124,14 +103,14 @@
       list.innerHTML = '';
       posts.forEach(p => {
         const el = document.createElement('div');
-        el.className = 'bg-brand-white p-4 rounded-xl shadow-sm card-outline flex justify-between items-center';
+        el.className = 'bg-white p-4 rounded shadow-md flex justify-between items-center';
         el.innerHTML = `
           <div>
             <h4 class="font-semibold mb-1">${p.title}</h4>
-            <small class="text-neutral-gray">/${p.slug}</small>
+            <small class="text-gray-500">/${p.slug}</small>
           </div>
           <div class="space-x-2">
-            <button data-id="${p.id}" class="editBtn bg-agpt-blue text-brand-white px-3 py-1 rounded hover:bg-agpt-blue-dark">Edit</button>
+            <button data-id="${p.id}" class="editBtn bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">Edit</button>
             <button data-id="${p.id}" class="deleteBtn bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Delete</button>
           </div>
         `;
