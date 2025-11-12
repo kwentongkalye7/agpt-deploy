@@ -4,29 +4,50 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Employee Registration - AGPT</title>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'agpt-blue': '#0057B8',
+            'agpt-blue-dark': '#00468A',
+            'agpt-blue-light': '#1374D8',
+            'growth-green': '#00B389',
+            'growth-green-dark': '#008562',
+            'neutral-gray': '#707070',
+            'header-black': '#000000',
+            'brand-white': '#FFFFFF',
+            'sky-mist': '#E8F2FA',
+            'mint-haze': '#E2F4EE'
+          }
+        }
+      }
+    }
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/assets/css/custom.css">
 </head>
-<body class="font-sans antialiased bg-gray-100">
+<body class="font-sans antialiased bg-sky-mist text-neutral-gray">
   <div class="min-h-screen flex flex-col items-center justify-center p-4">
     <div class="flex items-center mb-6">
       <img src="/assets/agpt.jpg" alt="AGPT Logo" class="w-12 h-12 mr-4">
-      <h1 class="text-xl font-bold text-gray-700">AGPT Accounting and Business Consultancy</h1>
+      <h1 class="text-xl font-bold text-header-black">AGPT Accounting and Business Consultancy</h1>
     </div>
-    <div class="max-w-md w-full bg-white p-6 rounded shadow-md">
-      <h2 class="text-2xl font-bold mb-4 text-center">Create Your Employee Account</h2>
+    <div class="max-w-md w-full bg-brand-white p-6 rounded-2xl shadow-sm card-outline">
+      <h2 class="text-2xl font-bold mb-4 text-center text-header-black">Create Your Employee Account</h2>
       <form id="registerForm" class="space-y-4">
         <div>
-          <label for="username" class="block mb-1 text-gray-700">Username</label>
-          <input id="username" name="username" type="text" class="w-full border px-3 py-2 rounded focus:ring focus:ring-blue-200" required />
+          <label for="username" class="block mb-1 text-neutral-gray font-medium">Username</label>
+          <input id="username" name="username" type="text" class="w-full border border-[#DDE3EA] px-3 py-2 rounded focus:outline-none focus:border-agpt-blue" required />
         </div>
         <div>
-          <label for="password" class="block mb-1 text-gray-700">Password</label>
-          <input id="password" name="password" type="password" class="w-full border px-3 py-2 rounded focus:ring focus:ring-blue-200" required />
+          <label for="password" class="block mb-1 text-neutral-gray font-medium">Password</label>
+          <input id="password" name="password" type="password" class="w-full border border-[#DDE3EA] px-3 py-2 rounded focus:outline-none focus:border-agpt-blue" required />
         </div>
-        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Register</button>
+        <button type="submit" class="w-full bg-agpt-blue text-brand-white py-3 rounded-full font-semibold hover:bg-agpt-blue-dark transition">Register</button>
       </form>
-      <div id="message" class="mt-4 text-center"></div>
-       <p class="text-center mt-4 text-sm">Already have an account? <a href="/admin/login.html" class="text-blue-600 hover:underline">Login here</a>.</p>
+      <div id="message" class="mt-4 text-center text-sm"></div>
+       <p class="text-center mt-4 text-sm">Already have an account? <a href="/admin/login.html" class="text-agpt-blue font-semibold hover:text-growth-green transition">Login here</a>.</p>
     </div>
   </div>
   <script>
@@ -44,12 +65,12 @@
 
       if (res.ok) {
         messageDiv.textContent = 'Registration successful! You can now log in.';
-        messageDiv.className = 'text-green-600';
+        messageDiv.className = 'text-center text-growth-green text-sm font-medium';
         e.target.reset();
       } else {
         const errorText = await res.text();
         messageDiv.textContent = `Error: ${errorText}`;
-        messageDiv.className = 'text-red-600';
+        messageDiv.className = 'text-center text-red-600 text-sm font-medium';
       }
     });
   </script>
