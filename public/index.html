@@ -291,6 +291,8 @@
       .then(res => res.json())
       .then(posts => {
         const container = document.getElementById('posts');
+        // Replace static placeholders with live posts to avoid duplicates
+        container.innerHTML = '';
         posts.forEach(p => {
           const article = document.createElement('article');
           article.className = 'news-item';
