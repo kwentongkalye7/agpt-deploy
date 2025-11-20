@@ -381,27 +381,31 @@ body {
 /* Mobile layout for team bios */
 @media (max-width: 1024px) {
     .team-card {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
         padding: 24px;
         text-align: center;
     }
 
     .team-photo {
-        width: 90%;
-        max-width: 320px;
-        margin: 0 auto 12px;
-        float: none;
+        width: 90% !important;
+        max-width: 320px !important;
+        margin: 0 auto 12px !important;
+        float: none !important;
     }
 
     .team-photo img {
-        height: auto;
+        height: auto !important;
     }
 
     .team-description {
-        width: 100%;
+        width: 100% !important;
         text-align: left;
+    }
+
+    .team-grid {
+        grid-template-columns: 1fr !important;
     }
 }
 
