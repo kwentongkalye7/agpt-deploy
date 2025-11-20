@@ -343,6 +343,7 @@ body {
 .team-photo {
     width: 100%;
     max-width: 320px;
+    margin: 0 auto;
     flex-shrink: 0;
     position: relative;
     overflow: hidden;
@@ -371,6 +372,10 @@ body {
     padding-top: 0;
     display: block;
     width: 100%;
+}
+
+.bio-toggle {
+    display: none;
 }
 
 .team-name {
@@ -837,7 +842,7 @@ body {
         flex-direction: row;
         padding: 0;
         box-shadow: none;
-        gap: 35px;
+        gap: 37px;
         align-items: center;
     }
 
