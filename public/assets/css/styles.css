@@ -136,7 +136,7 @@ body {
 }
 
 .hero-content {
-    flex: 1;
+    flex: 0.9;
 }
 
 .hero-content h1 {
@@ -184,7 +184,7 @@ body {
 }
 
 .hero-image {
-    flex: 1;
+    flex: 1.1;
     position: relative;
 }
 
@@ -893,6 +893,10 @@ body {
         align-items: center;
         gap: 80px;
         text-align: left;
+    }
+
+    .team-photo img.photo-carlo {
+        transform: scale(1.62) !important;
     }
 
     .hero-content h1 {
